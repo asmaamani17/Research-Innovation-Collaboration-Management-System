@@ -12,11 +12,26 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        // \App\Models\User::factory(10)->create();
-
-        // \App\Models\User::factory()->create([
-        //     'name' => 'Test User',
-        //     'email' => 'test@example.com',
-        // ]);
+        $this->call([
+            // User seeder first (for login functionality)
+            RoleSeeder::class,
+            ModuleSeeder::class,
+            UserSeeder::class,
+            
+            // Core tables (no foreign key dependencies)
+            FacultySeeder::class,
+            ProjectSeeder::class,
+            CompetitionSeeder::class,
+            
+            // Dependent tables (requires foreign keys)
+            StaffSeeder::class,      // depends on faculties
+            AwardSeeder::class,      // depends on staff, projects, events
+            
+            // User module permissions
+            UserModuleSeeder::class,
+            
+            // KPI data
+            KpiSeeder::class,
+        ]);
     }
 }
