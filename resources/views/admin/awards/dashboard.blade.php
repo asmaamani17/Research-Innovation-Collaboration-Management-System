@@ -24,10 +24,6 @@
             Live research awards overview from the system database.
         </p>
     </div>
-    <a href="{{ route('admin.awards') }}" class="flex min-w-[160px] cursor-pointer items-center justify-center gap-2 overflow-hidden rounded-lg h-12 px-6 bg-primary text-white text-sm font-bold shadow-lg hover:bg-primary/90 transition-all">
-        <span class="material-symbols-outlined text-sm">add</span>
-        <span>New Award</span>
-    </a>
 </header>
 
 <div class="px-8 pb-8">

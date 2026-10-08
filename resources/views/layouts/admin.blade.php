@@ -4,7 +4,7 @@
 <head>
     <meta charset="utf-8" />
     <meta content="width=device-width, initial-scale=1.0" name="viewport" />
-    <title>@yield('title') | Anugerah Penyelidikan</title>
+    <title>@yield('title') | Research, Innovation & Collaboration Management System</title>
 
     <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap"
@@ -153,20 +153,20 @@
                             <span class="material-symbols-outlined text-white">assessment</span>
                             <p class="text-sm font-medium">KPI Management</p>
                         </a>
-                        <a href="{{ route('workspace.switch', 'projects') }}"
-                            class="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-white/10 cursor-pointer transition-colors {{ $currentWorkspace === 'projects' ? 'active-nav' : '' }}">
-                            <span class="material-symbols-outlined text-white">science</span>
-                            <p class="text-sm font-medium">Research Projects</p>
-                        </a>
-                        <a href="{{ route('workspace.switch', 'events') }}"
-                            class="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-white/10 cursor-pointer transition-colors {{ $currentWorkspace === 'events' ? 'active-nav' : '' }}">
-                            <span class="material-symbols-outlined text-white">calendar_month</span>
-                            <p class="text-sm font-medium">Events Management</p>
-                        </a>
                         <a href="{{ route('workspace.switch', 'ip') }}"
                             class="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-white/10 cursor-pointer transition-colors {{ $currentWorkspace === 'ip' ? 'active-nav' : '' }}">
                             <span class="material-symbols-outlined text-white">inventory_2</span>
                             <p class="text-sm font-medium">IP Management</p>
+                        </a>
+                        <a href="{{ route('workspace.switch', 'community') }}"
+                            class="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-white/10 cursor-pointer transition-colors {{ $currentWorkspace === 'community' ? 'active-nav' : '' }}">
+                            <span class="material-symbols-outlined text-white">groups</span>
+                            <p class="text-sm font-medium">Community, STEM &amp; Industry Management</p>
+                        </a>
+                        <a href="{{ route('workspace.switch', 'products') }}"
+                            class="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-white/10 cursor-pointer transition-colors {{ $currentWorkspace === 'products' ? 'active-nav' : '' }}">
+                            <span class="material-symbols-outlined text-white">inventory_2</span>
+                            <p class="text-sm font-medium">Products Management</p>
                         </a>
 
                         <p class="text-white/50 text-xs font-semibold uppercase tracking-wider mt-6 mb-2">System</p>
@@ -184,6 +184,25 @@
                             class="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-white/10 cursor-pointer transition-colors">
                             <span class="material-symbols-outlined text-white">description</span>
                             <p class="text-sm font-medium">Audit Logs</p>
+                        </a>
+
+                    @elseif($isSuperadmin && $currentWorkspace === 'products')
+                        <p class="text-white/50 text-xs font-semibold uppercase tracking-wider mb-2">Products Management</p>
+                        <a href="{{ route('admin.products.index') }}"
+                            class="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-white/10 cursor-pointer transition-colors {{ request()->routeIs('admin.products.index') ? 'active-nav' : '' }}">
+                            <span class="material-symbols-outlined text-white">dashboard</span>
+                            <p class="text-sm font-medium">Dashboard</p>
+                        </a>
+                        <a href="{{ route('admin.products.records') }}"
+                            class="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-white/10 cursor-pointer transition-colors {{ request()->routeIs('admin.products.records', 'admin.products.edit') ? 'active-nav' : '' }}">
+                            <span class="material-symbols-outlined text-white">list_alt</span>
+                            <p class="text-sm font-medium">Product Records</p>
+                        </a>
+                        <div class="border-t border-white/20 my-4"></div>
+                        <a href="{{ route('superadmin.dashboard') }}"
+                            class="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-white/10 cursor-pointer transition-colors">
+                            <span class="material-symbols-outlined text-white">arrow_back</span>
+                            <p class="text-sm font-medium">Back to Super Admin</p>
                         </a>
 
                     @elseif($isSuperadmin && $currentWorkspace === 'awards')
@@ -228,6 +247,33 @@
                             class="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-white/10 cursor-pointer transition-colors {{ request()->routeIs('admin.awards.reports') ? 'active-nav' : '' }}">
                             <span class="material-symbols-outlined text-white">bar_chart</span>
                             <p class="text-sm font-medium">Reports</p>
+                        </a>
+
+                        <div class="border-t border-white/20 my-4"></div>
+                        <a href="{{ route('superadmin.dashboard') }}"
+                            class="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-white/10 cursor-pointer transition-colors">
+                            <span class="material-symbols-outlined text-white">arrow_back</span>
+                            <p class="text-sm font-medium">Back to Super Admin</p>
+                        </a>
+
+                    @elseif($isSuperadmin && $currentWorkspace === 'community')
+                        <!-- Community, STEM and Industry Workspace Navigation -->
+                        <p class="text-white/50 text-xs font-semibold uppercase tracking-wider mb-2">Community, STEM &amp; Industry</p>
+                        <a href="{{ route('admin.stem.dashboard') }}"
+                            class="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-white/10 cursor-pointer transition-colors {{ request()->routeIs('admin.stem.dashboard') ? 'active-nav' : '' }}">
+                            <span class="material-symbols-outlined text-white">dashboard</span>
+                            <p class="text-sm font-medium">Dashboard</p>
+                        </a>
+                        <a href="{{ route('admin.stem.programs.index') }}"
+                            class="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-white/10 cursor-pointer transition-colors {{ request()->routeIs('admin.stem.programs.index', 'admin.stem.programs.edit') ? 'active-nav' : '' }}">
+                            <span class="material-symbols-outlined text-white">list_alt</span>
+                            <p class="text-sm font-medium">Program Records</p>
+                        </a>
+    
+                        <a href="{{ route('admin.stem.programs.ocr') }}"
+                            class="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-white/10 cursor-pointer transition-colors {{ request()->routeIs('admin.stem.programs.ocr') ? 'active-nav' : '' }}">
+                            <span class="material-symbols-outlined text-white">document_scanner</span>
+                            <p class="text-sm font-medium">Bulk OCR</p>
                         </a>
 
                         <div class="border-t border-white/20 my-4"></div>
@@ -420,7 +466,14 @@
                             <p class="text-sm font-medium">Reports</p>
                         </a>
                         @endif
-                        @if(in_array('Products', $userModules) || in_array('Intellectual Property', $userModules))
+                        @if(in_array('Products', $userModules))
+                            <a href="{{ route('admin.products.index') }}"
+                                class="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-white/10 cursor-pointer transition-colors {{ request()->routeIs('admin.products.*') ? 'active-nav' : '' }}">
+                                <span class="material-symbols-outlined text-white">inventory_2</span>
+                                <p class="text-sm font-medium">Products</p>
+                            </a>
+                        @endif
+                        @if(in_array('Intellectual Property', $userModules))
                             <a href="{{ route('admin.projects.index') }}"
                                 class="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-white/10 cursor-pointer transition-colors {{ request()->routeIs('admin.projects.*') ? 'active-nav' : '' }}">
                                 <span class="material-symbols-outlined text-white">science</span>
@@ -491,7 +544,10 @@
                         'awards' => 'Awards Management',
                         'kpi' => 'KPI Management',
                         'projects' => 'Research Projects',
-                        'events' => 'Events Management'
+                        'events' => 'Events Management',
+                        'community' => 'Community, STEM & Industry',
+                        'ip' => 'IP Management',
+                        'products' => 'Products Management',
                     ];
                     $currentWorkspaceName = $workspaceNames[$currentWorkspace] ?? $workspaceNames['superadmin'];
                 @endphp

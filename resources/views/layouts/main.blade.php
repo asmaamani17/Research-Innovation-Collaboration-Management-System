@@ -3,8 +3,8 @@
 <head>
     <meta charset="utf-8"/>
     <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
-    <title>@yield('title') | Anugerah Penyelidikan</title>
-    
+    <title>@yield('title') | Research, Innovation & Collaboration Management System</title>
+
     <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"/>
     <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght@100..700,0..1&display=swap" rel="stylesheet"/>
@@ -66,8 +66,7 @@
                     <!-- <span class="text-gray-900 text-lg font-bold tracking-tight">Anugerah Penyelidikan</span> -->
                 </div>
                 <div class="hidden md:flex items-center gap-8">
-                    <a class="text-gray-600 text-sm font-medium hover:text-primary transition-colors" href="#">University Portal</a>
-                    <a class="text-gray-600 text-sm font-medium hover:text-primary transition-colors" href="#">Research Hub</a>
+                    <a class="text-gray-600 text-sm font-medium hover:text-primary transition-colors" href="https://rice.utem.edu.my/ms/">RICE Portal</a>
                     <a class="text-gray-600 text-sm font-medium hover:text-primary transition-colors" href="#">Support</a>
                 </div>
             </div>
@@ -81,8 +80,8 @@
 
     <!-- Page Footer -->
     <footer class="w-full py-6 text-center text-gray-400 text-xs">
-        <p>© 2024 Universiti Teknikal Malaysia Melaka. All rights reserved.</p>
-        <p class="mt-1">Research Management Information System (RAMS) v2.4.1</p>
+        <p>© 2026 Universiti Teknikal Malaysia Melaka. All rights reserved.</p>
+        <p class="mt-1">Research, Innovation & Collaboration Management (RICM) v1.0.0</p>
     </footer>
     
     @stack('scripts')

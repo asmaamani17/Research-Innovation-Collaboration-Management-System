@@ -3,9 +3,9 @@
 namespace App\Http\Controllers;
 
 use App\Models\Award;
-use App\Models\Product;
 use App\Models\Project;
 use App\Models\Staff;
+use App\Models\TrlProduct;
 use App\Models\KpiStrategy;
 use App\Models\KpiYear;
 use App\Models\Competition;
@@ -20,7 +20,7 @@ class SuperAdminController extends Controller
 
         // Get summary statistics
         $totalAwards = Award::count();
-        $totalProducts = Product::count();
+        $totalProducts = TrlProduct::count();
         $totalProjects = Project::count();
         $totalStaff = Staff::count();
         $totalCompetitions = Competition::count();
@@ -41,13 +41,13 @@ class SuperAdminController extends Controller
             ->get();
 
         // Get products by status
-        $productsByStatus = Product::selectRaw('development_status, COUNT(*) as count')
-            ->groupBy('development_status')
+        $productsByStatus = TrlProduct::selectRaw('status as development_status, COUNT(*) as count')
+            ->groupBy('status')
             ->get();
 
         // Get products by category
-        $productsByCategory = Product::selectRaw('product_category, COUNT(*) as count')
-            ->groupBy('product_category')
+        $productsByCategory = TrlProduct::selectRaw('category as product_category, COUNT(*) as count')
+            ->groupBy('category')
             ->get();
 
         // Get KPI achievement by year
@@ -118,8 +118,8 @@ class SuperAdminController extends Controller
             });
 
         // Get products by status
-        $productsByStatus = Product::selectRaw('development_status, COUNT(*) as count')
-            ->groupBy('development_status')
+        $productsByStatus = TrlProduct::selectRaw('status as development_status, COUNT(*) as count')
+            ->groupBy('status')
             ->get()
             ->map(function ($item) {
                 return [
@@ -129,8 +129,8 @@ class SuperAdminController extends Controller
             });
 
         // Get products by category
-        $productsByCategory = Product::selectRaw('product_category, COUNT(*) as count')
-            ->groupBy('product_category')
+        $productsByCategory = TrlProduct::selectRaw('category as product_category, COUNT(*) as count')
+            ->groupBy('category')
             ->get()
             ->map(function ($item) {
                 return [
@@ -176,7 +176,7 @@ class SuperAdminController extends Controller
 
     public function switchWorkspace($workspace)
     {
-        $validWorkspaces = ['superadmin', 'awards', 'kpi', 'projects', 'events', 'ip'];
+        $validWorkspaces = ['superadmin', 'awards', 'kpi', 'projects', 'events', 'ip', 'community', 'products'];
 
         if (!in_array($workspace, $validWorkspaces)) {
             return redirect()->back()->with('error', 'Invalid workspace');
@@ -192,6 +192,8 @@ class SuperAdminController extends Controller
             'projects' => redirect()->route('admin.projects.index'),
             'events' => redirect()->route('admin.events'),
             'ip' => redirect()->route('admin.ip.dashboard'),
+            'community' => redirect()->route('admin.stem.dashboard'),
+            'products' => redirect()->route('admin.products.index'),
             default => redirect()->route('superadmin.dashboard'),
         };
     }

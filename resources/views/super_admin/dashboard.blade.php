@@ -30,7 +30,7 @@
 
         <div class="bg-white border border-divider-subtle/30 rounded-xl p-6 shadow-sm flex items-center justify-between group hover:border-primary transition-colors">
             <div class="space-y-2">
-                <p class="text-sm font-medium text-divider-subtle">Total Products</p>
+                <p class="text-sm font-medium text-divider-subtle">Total TRL Products</p>
                 <p class="text-3xl font-bold text-text-main">{{ number_format($totalProducts) }}</p>
             </div>
             <div class="bg-green-100 p-3 rounded-lg text-green-600">
@@ -110,7 +110,7 @@
         <!-- Products by Status Chart -->
         <div class="bg-white border border-divider-subtle/30 rounded-xl p-6 shadow-sm">
             <div class="flex items-center justify-between mb-6">
-                <h3 class="text-lg font-bold text-text-main">Products by Development Status</h3>
+                <h3 class="text-lg font-bold text-text-main">TRL Products by Status</h3>
                 <button onclick="refreshChart('productsByStatus')" class="text-sm font-semibold text-primary hover:text-primary/80">
                     <span class="material-symbols-outlined text-sm">refresh</span>
                 </button>

@@ -7,6 +7,19 @@
 <a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
 </p>
 
+## RICM Products / TRL workspace
+
+Products Management uses the RICM database table `trl_products` for TRL records. The legacy `products` table remains in place because RICM awards reference it. TRL records are managed locally; this workspace does not connect to Google Sheets.
+
+To create the TRL table and import the supplied source records:
+
+```bash
+php artisan migrate
+php artisan db:seed --class=TrlProductsSeeder
+```
+
+The seed contains the 731 TRL records supplied with `dashboard-trl`. It can be run again safely because the records have unique UUIDs and duplicate inserts are ignored. Super Admins can manage records under **Products Management**, filter by TRL/status/faculty, import `.xlsx`, `.xls`, or `.csv` files using the displayed headers, and export filtered results to Excel.
+
 ## About Laravel
 
 Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:

@@ -166,6 +166,73 @@
             </div>
         </div>
     </div>
+
+    <!-- Add Faculty Modal -->
+    <div id="addFacultyModal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4">
+        <div class="w-full max-w-lg rounded-xl bg-white p-6 shadow-xl">
+            <div class="mb-6 flex items-center justify-between">
+                <h3 class="text-xl font-bold text-text-main">Add Faculty</h3>
+                <button type="button" onclick="closeAddFacultyModal()" class="text-divider-subtle hover:text-text-main" aria-label="Close">
+                    <span class="material-symbols-outlined">close</span>
+                </button>
+            </div>
+            <form id="addFacultyForm" method="POST" action="{{ route('admin.faculty.store') }}" class="space-y-4">
+                @csrf
+                <div>
+                    <label for="faculty_code" class="mb-1 block text-sm font-semibold text-text-main">Faculty Code</label>
+                    <input id="faculty_code" name="faculty_code" type="text" value="{{ old('faculty_code') }}" required maxlength="20"
+                        class="w-full rounded-lg border border-divider-subtle/40 px-4 py-3 text-sm focus:border-primary focus:ring-primary">
+                    @error('faculty_code')
+                        <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                    @enderror
+                </div>
+                <div>
+                    <label for="faculty_name" class="mb-1 block text-sm font-semibold text-text-main">Faculty Name</label>
+                    <input id="faculty_name" name="faculty_name" type="text" value="{{ old('faculty_name') }}" required maxlength="100"
+                        class="w-full rounded-lg border border-divider-subtle/40 px-4 py-3 text-sm focus:border-primary focus:ring-primary">
+                    @error('faculty_name')
+                        <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                    @enderror
+                </div>
+                <div class="flex justify-end gap-3 pt-2">
+                    <button type="button" onclick="closeAddFacultyModal()" class="rounded-lg border border-divider-subtle/40 px-4 py-2 text-sm font-semibold text-text-main hover:bg-background-light">Cancel</button>
+                    <button type="submit" class="rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-white hover:bg-primary/90">Save Faculty</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Edit Faculty Modal -->
+    <div id="editFacultyModal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4">
+        <div class="w-full max-w-lg rounded-xl bg-white p-6 shadow-xl">
+            <div class="mb-6 flex items-center justify-between">
+                <h3 class="text-xl font-bold text-text-main">Edit Faculty</h3>
+                <button type="button" onclick="closeEditFacultyModal()" class="text-divider-subtle hover:text-text-main" aria-label="Close">
+                    <span class="material-symbols-outlined">close</span>
+                </button>
+            </div>
+            <form id="editFacultyForm" method="POST" class="space-y-4">
+                @csrf
+                @method('PUT')
+                <input id="edit_faculty_id" type="hidden" name="id">
+                <div>
+                    <label for="edit_faculty_code" class="mb-1 block text-sm font-semibold text-text-main">Faculty Code</label>
+                    <input id="edit_faculty_code" name="faculty_code" type="text" required maxlength="20"
+                        class="w-full rounded-lg border border-divider-subtle/40 px-4 py-3 text-sm focus:border-primary focus:ring-primary">
+                </div>
+                <div>
+                    <label for="edit_faculty_name" class="mb-1 block text-sm font-semibold text-text-main">Faculty Name</label>
+                    <input id="edit_faculty_name" name="faculty_name" type="text" required maxlength="100"
+                        class="w-full rounded-lg border border-divider-subtle/40 px-4 py-3 text-sm focus:border-primary focus:ring-primary">
+                </div>
+                <div class="flex justify-end gap-3 pt-2">
+                    <button type="button" onclick="closeEditFacultyModal()" class="rounded-lg border border-divider-subtle/40 px-4 py-2 text-sm font-semibold text-text-main hover:bg-background-light">Cancel</button>
+                    <button type="submit" class="rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-white hover:bg-primary/90">Update Faculty</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
 @endsection
 
 @push('scripts')

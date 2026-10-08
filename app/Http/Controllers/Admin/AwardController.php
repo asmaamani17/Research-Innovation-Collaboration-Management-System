@@ -714,12 +714,12 @@ class AwardController extends Controller
                 break;
             case 'faculties':
                 $data = Faculty::select('faculties.id', 'faculties.faculty_code', 'faculties.faculty_name')
-                    ->leftJoin('staff', 'faculties.id', '=', 'staff.faculty_id')
-                    ->leftJoin('awards', 'staff.id', '=', 'awards.staff_id')
-                    ->leftJoin('exhibition_results', 'awards.exhibition_result_id', '=', 'exhibition_results.ExhibitionResultID')
+                    ->join('staff', 'faculties.id', '=', 'staff.faculty_id')
+                    ->join('awards', 'staff.id', '=', 'awards.staff_id')
+                    ->join('exhibition_results', 'awards.exhibition_result_id', '=', 'exhibition_results.ExhibitionResultID')
                     ->selectRaw('faculties.id, faculties.faculty_code, faculties.faculty_name,
-                        COALESCE(exhibition_results.Description, "No Result") as result_description,
-                        COUNT(*) as count')
+                        exhibition_results.Description as result_description,
+                        COUNT(awards.id) as count')
                     ->groupBy('faculties.id', 'faculties.faculty_code', 'faculties.faculty_name', 'exhibition_results.ExhibitionResultID', 'exhibition_results.Description')
                     ->orderBy('faculties.faculty_code')
                     ->orderBy('count', 'desc')
@@ -733,8 +733,8 @@ class AwardController extends Controller
                     ->get();
                 break;
             case 'results':
-                $data = Award::leftJoin('exhibition_results', 'awards.exhibition_result_id', '=', 'exhibition_results.ExhibitionResultID')
-                    ->selectRaw('COALESCE(exhibition_results.Description, "No Result") as description, COUNT(*) as count')
+                $data = Award::join('exhibition_results', 'awards.exhibition_result_id', '=', 'exhibition_results.ExhibitionResultID')
+                    ->selectRaw('exhibition_results.Description as description, COUNT(awards.id) as count')
                     ->groupBy('exhibition_results.ExhibitionResultID', 'exhibition_results.Description')
                     ->orderBy('count', 'desc')
                     ->get();
