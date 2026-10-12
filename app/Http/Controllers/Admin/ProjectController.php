@@ -128,12 +128,41 @@ class ProjectController extends Controller
         ])->findOrFail($id);
 
         // Calculate project statistics (case-insensitive matching)
+        // Check award_level, award_name, and exhibition_result.Description fields
+        // Support both English (Gold, Silver, Bronze) and Malay (Emas, Perak, Gangsa)
         $stats = [
             'total_awards' => $project->awards->count(),
             'unique_staff' => $project->staff->count(),
-            'gold_awards' => $project->awards->filter(fn($a) => strtoupper($a->award_level) === 'GOLD')->count(),
-            'silver_awards' => $project->awards->filter(fn($a) => strtoupper($a->award_level) === 'SILVER')->count(),
-            'bronze_awards' => $project->awards->filter(fn($a) => strtoupper($a->award_level) === 'BRONZE')->count(),
+            'gold_awards' => $project->awards->filter(function($a) {
+                $level = strtoupper($a->award_level ?? '');
+                $name = strtoupper($a->award_name ?? '');
+                $result = strtoupper($a->exhibitionResult->Description ?? '');
+                return $level === 'GOLD' || str_contains($name, 'GOLD') || str_contains($result, 'EMAS');
+            })->count(),
+            'silver_awards' => $project->awards->filter(function($a) {
+                $level = strtoupper($a->award_level ?? '');
+                $name = strtoupper($a->award_name ?? '');
+                $result = strtoupper($a->exhibitionResult->Description ?? '');
+                return $level === 'SILVER' || str_contains($name, 'SILVER') || str_contains($result, 'PERAK');
+            })->count(),
+            'bronze_awards' => $project->awards->filter(function($a) {
+                $level = strtoupper($a->award_level ?? '');
+                $name = strtoupper($a->award_name ?? '');
+                $result = strtoupper($a->exhibitionResult->Description ?? '');
+                return $level === 'BRONZE' || str_contains($name, 'BRONZE') || str_contains($result, 'GANGSA');
+            })->count(),
+            'platinum_awards' => $project->awards->filter(function($a) {
+                $level = strtoupper($a->award_level ?? '');
+                $name = strtoupper($a->award_name ?? '');
+                $result = strtoupper($a->exhibitionResult->Description ?? '');
+                return $level === 'PLATINUM' || str_contains($name, 'PLATINUM') || str_contains($result, 'PLATINUM');
+            })->count(),
+            'special_awards' => $project->awards->filter(function($a) {
+                $level = strtoupper($a->award_level ?? '');
+                $name = strtoupper($a->award_name ?? '');
+                $result = strtoupper($a->exhibitionResult->Description ?? '');
+                return $level === 'SPECIAL' || str_contains($name, 'SPECIAL') || str_contains($result, 'ANUGERAH KHAS');
+            })->count(),
             'faculties_involved' => $project->staff->pluck('faculty.id')->unique()->count(),
         ];
 

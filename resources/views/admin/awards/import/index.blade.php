@@ -86,10 +86,18 @@
                             <div>
                                 <p class="text-sm font-semibold text-yellow-800">Important Notes:</p>
                                 <ul class="text-xs text-yellow-700 mt-1 space-y-1 list-disc list-inside">
-                                    <li>Ensure date fields are in YYYY-MM-DD format</li>
-                                    <li>For Staff imports, faculty_code must match existing faculty codes</li>
+                                    <li>Ensure date fields are in YYYY-MM-DD format (e.g., 2024-01-15)</li>
+                                    <li>ProjectID must match existing project IDs in the system</li>
+                                    <li>Staff ID must match existing staff IDs in the system</li>
+                                    <li>For Template_RD8_1_New: Person_RefNo must match Staff records</li>
+                                    <li>For Template_RD8_New: ProjectID must match existing Project records</li>
+                                    <li>Faculty codes must match existing faculty codes in the system</li>
                                     <li>Maximum file size: 10MB</li>
                                     <li>Only CSV files are accepted</li>
+                                    <li>Do not modify the column headers in the template</li>
+                                    <li>Ensure all required fields are filled before importing</li>
+                                    <li>Leave empty cells for optional fields, do not use spaces</li>
+                                    <li>Back up your data before bulk import operations</li>
                                 </ul>
                             </div>
                         </div>

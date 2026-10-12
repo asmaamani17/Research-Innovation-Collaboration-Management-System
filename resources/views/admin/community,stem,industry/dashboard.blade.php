@@ -22,14 +22,12 @@
   </header>
 
   <div class="space-y-6 px-4 sm:px-8">
-  {{-- Bar Penapis -- GET supaya boleh dikongsi/bookmark, dan senang di-reset.
-       Sama struktur/class dgn bar penapis Senarai Rekod (.form-field), cuma
-       2 medan (Tahun + Pusat) sebab dashboard ni paparan ringkasan/agregat. --}}
-  <div class="rounded-xl border border-divider-subtle/30 bg-white p-4 shadow-sm sm:p-6">
+  {{-- Filter Bar --}}
+  <div class="rounded-xl border border-divider-subtle/30 bg-white p-4 shadow-sm sm:p-6 mb-6">
     <form method="GET" action="{{ route($routeIndex) }}">
       <div class="grid grid-cols-1 items-end gap-4 sm:grid-cols-[1fr_1fr_auto]">
         <div>
-          <label class="mb-2 block text-sm font-medium text-text-main">Tahun</label>
+          <label class="block text-xs font-semibold text-text-main mb-1.5 uppercase tracking-wider">Tahun</label>
           <select name="tahun" onchange="this.form.submit()" class="w-full rounded-lg border border-divider-subtle/50 bg-white px-4 py-3 text-sm text-text-main outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20">
             <option value="">Semua Tahun</option>
             @foreach($senaraiTahunFilter as $tahun)
@@ -38,7 +36,7 @@
           </select>
         </div>
         <div>
-          <label class="mb-2 block text-sm font-medium text-text-main">Pusat Tanggungjawab</label>
+          <label class="block text-xs font-semibold text-text-main mb-1.5 uppercase tracking-wider">Pusat Tanggungjawab</label>
           <select name="pusat" onchange="this.form.submit()" class="w-full rounded-lg border border-divider-subtle/50 bg-white px-4 py-3 text-sm text-text-main outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20">
             <option value="">Semua Pusat</option>
             @foreach($senaraiPusatFilter as $pusat)

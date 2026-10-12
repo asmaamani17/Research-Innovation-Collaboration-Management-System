@@ -14,15 +14,42 @@
         </p>
     </div>
     <div class="flex items-center gap-3">
-        <select id="yearSelector" class="px-4 py-2 rounded-lg border border-divider-subtle/70 bg-white text-text-main focus:outline-none focus:ring-2 focus:ring-primary/50">
-            @foreach($years as $year)
-                <option value="{{ $year }}" {{ $year == $currentYear ? 'selected' : '' }}>{{ $year }}</option>
-            @endforeach
-        </select>
+        <a href="{{ route('admin.kpi.export', ['year' => $currentYear]) }}"
+            class="px-4 py-2 rounded-lg bg-green-50 text-green-700 hover:bg-green-100 transition-colors border border-green-200">
+            <span class="material-symbols-outlined text-lg">download</span>
+            <span class="font-medium text-sm">Export</span>
+        </a>
     </div>
 </header>
 
 <div class="px-8 pb-8">
+    <!-- Filter Bar -->
+    <div class="rounded-xl border border-divider-subtle/30 bg-white p-4 shadow-sm sm:p-6 mb-6">
+        <form method="GET" action="{{ route('admin.kpi.index') }}">
+            <div class="grid grid-cols-1 items-end gap-4 sm:grid-cols-[1fr_1fr_auto]">
+                <div>
+                    <label class="block text-xs font-semibold text-text-main mb-1.5 uppercase tracking-wider">Year</label>
+                    <select name="year" onchange="this.form.submit()" class="w-full rounded-lg border border-divider-subtle/50 bg-white px-4 py-3 text-sm text-text-main outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20">
+                        @foreach($years as $year)
+                            <option value="{{ $year }}" {{ $year == $currentYear ? 'selected' : '' }}>{{ $year }}</option>
+                        @endforeach
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-text-main mb-1.5 uppercase tracking-wider">Strategy</label>
+                    <select name="strategy" onchange="this.form.submit()" class="w-full rounded-lg border border-divider-subtle/50 bg-white px-4 py-3 text-sm text-text-main outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20">
+                        <option value="">All Strategies</option>
+                        @foreach($strategyOptions ?? [] as $strategy)
+                            <option value="{{ $strategy->strategy_code }}" {{ request('strategy') == $strategy->strategy_code ? 'selected' : '' }}>{{ $strategy->strategy_code }} - {{ $strategy->strategy_name }}</option>
+                        @endforeach
+                    </select>
+                </div>
+                <div>
+                    <a href="{{ route('admin.kpi.index') }}" class="inline-flex min-h-11 items-center justify-center rounded-lg border border-divider-subtle/50 bg-white px-5 py-3 text-sm font-bold text-text-main transition hover:bg-background-light">Reset</a>
+                </div>
+            </div>
+        </form>
+    </div>
     <!-- Summary Cards -->
     <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
         <div class="bg-white border border-divider-subtle/30 rounded-xl p-6 shadow-sm flex items-center justify-between group hover:border-primary transition-colors">
@@ -569,11 +596,6 @@
         document.getElementById("kpiModal").classList.add("hidden");
         document.getElementById("kpiModal").classList.remove("flex");
     }
-
-    document.getElementById("yearSelector").addEventListener("change", function(e) {
-        currentYear = parseInt(e.target.value);
-        refreshLiveData();
-    });
 
     document.getElementById("closeModal").addEventListener("click", closeModal);
     document.getElementById("kpiModal").addEventListener("click", function(e) {

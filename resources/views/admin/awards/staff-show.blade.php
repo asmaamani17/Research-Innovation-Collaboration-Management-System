@@ -13,7 +13,7 @@
                 View staff member information and award history.
             </p>
         </div>
-        <a href="{{ route('admin.staff.index') }}" class="flex min-w-[160px] cursor-pointer items-center justify-center gap-2 overflow-hidden rounded-lg h-12 px-6 bg-white border border-divider-subtle/40 text-text-main text-sm font-bold shadow-sm hover:bg-background-light transition-all">
+        <a href="{{ route('admin.staff.index') }}" class="flex min-w-[160px] cursor-pointer items-center justify-center gap-2 overflow-hidden rounded-lg h-12 px-6 bg-white border border-divider-subtle/40 text-text-main text-sm font-bold shadow-lg hover:bg-background-light transition-all">
             <span class="material-symbols-outlined text-sm">arrow_back</span>
             <span>Back to Staff</span>
         </a>
@@ -52,7 +52,7 @@
         </div>
 
         <!-- Statistics Cards -->
-        <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
             <div class="bg-white border border-divider-subtle/30 rounded-xl p-4">
                 <div class="text-divider-subtle text-xs font-medium uppercase tracking-wider mb-2">Total Awards</div>
                 <div class="text-3xl font-bold text-primary">{{ $award_stats['total'] }}</div>
@@ -68,6 +68,14 @@
             <div class="bg-white border border-divider-subtle/30 rounded-xl p-4">
                 <div class="text-divider-subtle text-xs font-medium uppercase tracking-wider mb-2">Bronze</div>
                 <div class="text-3xl font-bold text-orange-700">{{ $award_stats['bronze'] }}</div>
+            </div>
+            <div class="bg-white border border-divider-subtle/30 rounded-xl p-4">
+                <div class="text-divider-subtle text-xs font-medium uppercase tracking-wider mb-2">Platinum</div>
+                <div class="text-3xl font-bold text-cyan-600">{{ $award_stats['platinum'] ?? 0 }}</div>
+            </div>
+            <div class="bg-white border border-divider-subtle/30 rounded-xl p-4">
+                <div class="text-divider-subtle text-xs font-medium uppercase tracking-wider mb-2">Special</div>
+                <div class="text-3xl font-bold text-purple-600">{{ $award_stats['special'] ?? 0 }}</div>
             </div>
         </div>
 

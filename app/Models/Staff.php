@@ -20,7 +20,10 @@ class Staff extends Model
      */
     public function faculty()
     {
-        return $this->belongsTo(Faculty::class);
+        return $this->belongsTo(Faculty::class)->withDefault([
+            'faculty_name' => 'No Faculty',
+            'faculty_code' => 'N/A'
+        ]);
     }
 
     /**

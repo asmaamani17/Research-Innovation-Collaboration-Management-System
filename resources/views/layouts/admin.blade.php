@@ -226,8 +226,8 @@
                     @elseif($isSuperadmin && $currentWorkspace === 'awards')
                         <!-- Awards Workspace Navigation -->
                         <p class="text-white/50 text-xs font-semibold uppercase tracking-wider mb-2">Awards Management</p>
-                        <a href="{{ route('admin.dashboard') }}"
-                            class="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-white/10 cursor-pointer transition-colors {{ request()->routeIs('admin.dashboard') ? 'active-nav' : '' }}">
+                        <a href="{{ route('admin.awards.dashboard') }}"
+                            class="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-white/10 cursor-pointer transition-colors {{ request()->routeIs('admin.awards.dashboard') ? 'active-nav' : '' }}">
                             <span class="material-symbols-outlined text-white">dashboard</span>
                             <p class="text-sm font-medium">Dashboard</p>
                         </a>
@@ -314,26 +314,6 @@
                             <span class="material-symbols-outlined text-white">edit_note</span>
                             <p class="text-sm font-medium">Strategic Plans</p>
                         </a>
-                        <a href="{{ route('admin.kpi.index') }}"
-                            class="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-white/10 cursor-pointer transition-colors">
-                            <span class="material-symbols-outlined text-white">assessment</span>
-                            <p class="text-sm font-medium">KPIs</p>
-                        </a>
-                        <a href="#"
-                            class="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-white/10 cursor-pointer transition-colors">
-                            <span class="material-symbols-outlined text-white">insights</span>
-                            <p class="text-sm font-medium">Indicators</p>
-                        </a>
-                        <a href="#"
-                            class="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-white/10 cursor-pointer transition-colors">
-                            <span class="material-symbols-outlined text-white">trending_up</span>
-                            <p class="text-sm font-medium">Achievements</p>
-                        </a>
-                        <a href="{{ route('admin.reports') }}"
-                            class="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-white/10 cursor-pointer transition-colors {{ request()->routeIs('admin.reports') ? 'active-nav' : '' }}">
-                            <span class="material-symbols-outlined text-white">bar_chart</span>
-                            <p class="text-sm font-medium">Reports</p>
-                        </a>
 
                         <div class="border-t border-white/20 my-4"></div>
                         <a href="{{ route('superadmin.dashboard') }}"
@@ -401,36 +381,6 @@
                             <span class="material-symbols-outlined text-white">event_repeat</span>
                             <p class="text-sm font-medium">Renewals</p>
                         </a>
-                        <a href="{{ route('admin.staff.index') }}"
-                            class="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-white/10 cursor-pointer transition-colors {{ request()->routeIs('admin.staff.index') ? 'active-nav' : '' }}">
-                            <span class="material-symbols-outlined text-white">group</span>
-                            <p class="text-sm font-medium">Staff Management</p>
-                        </a>
-                        <a href="{{ route('admin.faculty.index') }}"
-                            class="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-white/10 cursor-pointer transition-colors {{ request()->routeIs('admin.faculty.index') ? 'active-nav' : '' }}">
-                            <span class="material-symbols-outlined text-white">school</span>
-                            <p class="text-sm font-medium">Faculty List</p>
-                        </a>
-                        <a href="{{ route('admin.projects.index') }}"
-                            class="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-white/10 cursor-pointer transition-colors {{ request()->routeIs('admin.projects.*') ? 'active-nav' : '' }}">
-                            <span class="material-symbols-outlined text-white">science</span>
-                            <p class="text-sm font-medium">Projects</p>
-                        </a>
-                        <a href="{{ route('admin.ip.import') }}"
-                            class="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-white/10 cursor-pointer transition-colors {{ request()->routeIs('admin.ip.import') ? 'active-nav' : '' }}">
-                            <span class="material-symbols-outlined text-white">upload_file</span>
-                            <p class="text-sm font-medium">Import Data</p>
-                        </a>
-                        <a href="{{ route('admin.ip.renewals') }}"
-                            class="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-white/10 cursor-pointer transition-colors {{ request()->routeIs('admin.ip.renewals') ? 'active-nav' : '' }}">
-                            <span class="material-symbols-outlined text-white">event_repeat</span>
-                            <p class="text-sm font-medium">Renewals</p>
-                        </a>
-                        <a href="{{ route('admin.ip.reports') }}"
-                            class="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-white/10 cursor-pointer transition-colors {{ request()->routeIs('admin.ip.reports') ? 'active-nav' : '' }}">
-                            <span class="material-symbols-outlined text-white">bar_chart</span>
-                            <p class="text-sm font-medium">Reports</p>
-                        </a>
 
                         <div class="border-t border-white/20 my-4"></div>
                         <a href="{{ route('superadmin.dashboard') }}"
@@ -453,8 +403,8 @@
                             </a>
                         @endif
                         @if(in_array('Awards', $userModules))
-                        <a href="{{ route('admin.dashboard') }}"
-                            class="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-white/10 cursor-pointer transition-colors {{ request()->routeIs('admin.dashboard') ? 'active-nav' : '' }}">
+                        <a href="{{ route('admin.awards.dashboard') }}"
+                            class="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-white/10 cursor-pointer transition-colors {{ request()->routeIs('admin.awards.dashboard') ? 'active-nav' : '' }}">
                             <span class="material-symbols-outlined text-white">dashboard</span>
                             <p class="text-sm font-medium">Dashboard</p>
                         </a>
@@ -517,8 +467,8 @@
                         @endif
                     @elseif($isStaff)
                         <!-- Staff users - show basic navigation -->
-                        <a href="{{ route('admin.dashboard') }}"
-                            class="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-white/10 cursor-pointer transition-colors {{ request()->routeIs('admin.dashboard') ? 'active-nav' : '' }}">
+                        <a href="{{ route('admin.awards.dashboard') }}"
+                            class="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-white/10 cursor-pointer transition-colors {{ request()->routeIs('admin.awards.dashboard') ? 'active-nav' : '' }}">
                             <span class="material-symbols-outlined text-white">dashboard</span>
                             <p class="text-sm font-medium">Dashboard</p>
                         </a>

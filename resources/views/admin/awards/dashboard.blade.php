@@ -33,7 +33,7 @@
         <form method="GET" action="{{ route($routeIndex) }}">
             <div class="grid grid-cols-1 items-end gap-4 sm:grid-cols-[1fr_1fr_auto]">
                 <div>
-                    <label class="mb-2 block text-sm font-medium text-text-main">Year</label>
+                    <label class="block text-xs font-semibold text-text-main mb-1.5 uppercase tracking-wider">Year</label>
                     <select name="year" onchange="this.form.submit()" class="w-full rounded-lg border border-divider-subtle/50 bg-white px-4 py-3 text-sm text-text-main outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20">
                         <option value="">All Years</option>
                         @foreach($senaraiTahunFilter ?? [] as $year)
@@ -42,7 +42,7 @@
                     </select>
                 </div>
                 <div>
-                    <label class="mb-2 block text-sm font-medium text-text-main">Faculty</label>
+                    <label class="block text-xs font-semibold text-text-main mb-1.5 uppercase tracking-wider">Faculty</label>
                     <select name="faculty" onchange="this.form.submit()" class="w-full rounded-lg border border-divider-subtle/50 bg-white px-4 py-3 text-sm text-text-main outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20">
                         <option value="">All Faculties</option>
                         @foreach($senaraiFacultyFilter ?? [] as $faculty)
@@ -63,7 +63,7 @@
             <div class="space-y-2">
                 <p class="text-sm font-medium text-divider-subtle">Total Awards</p>
                 <p class="text-3xl font-bold text-text-main" id="total-awards">{{ number_format($stats['total_awards']) }}</p>
-                <div class="text-xs text-divider-subtle">records {{ request('year') ? 'in ' . request('year') : 'all years' }}</div>
+                <div class="text-xs text-divider-subtle">Records {{ request('year') ? 'in ' . request('year') : 'all years' }}</div>
             </div>
             <div class="bg-primary/10 p-3 rounded-lg text-primary">
                 <span class="material-symbols-outlined text-2xl">emoji_events</span>

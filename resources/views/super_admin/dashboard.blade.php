@@ -7,7 +7,7 @@
 <header class="px-8 py-8 flex flex-wrap items-center justify-between gap-4">
     <div class="flex flex-col">
         <h2 class="text-text-main text-3xl font-black leading-tight tracking-tight">
-            Research, Innovation and Collaboration Management Dashboard
+            RICM Dashboard
         </h2>
         <p class="text-divider-subtle font-medium text-sm mt-1">
             Comprehensive analytics overview covering Awards, KPI Performance, Intellectual Property (IP), Community & STEM Industry, and TRL Products.
@@ -16,69 +16,49 @@
 </header>
 
 <div class="px-8 pb-8">
-    <!-- Top Filter Bar -->
-    <form method="GET" action="{{ route('superadmin.dashboard') }}" class="bg-white border border-divider-subtle/30 rounded-xl p-6 mb-8 shadow-sm">
-        <div class="flex items-center justify-between mb-2">
-            @if($selectedYear || $selectedFaculty || $selectedModule)
-                <span class="text-xs font-semibold text-primary bg-primary/10 px-3 py-1 rounded-full flex items-center gap-1">
-                    <span class="material-symbols-outlined text-sm">filter_alt</span> Filters Applied
-                </span>
-            @endif
-        </div>
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <!-- Year Filter -->
-            <div>
-                <label class="block text-xs font-semibold text-text-main mb-1.5 uppercase tracking-wider">Year</label>
-                <select name="year" id="filterYear"
-                    class="w-full h-11 px-4 bg-background-light border-none rounded-lg text-sm text-text-main focus:ring-2 focus:ring-primary">
-                    <option value="">All Years</option>
-                    @foreach($availableYears as $yearOpt)
-                        <option value="{{ $yearOpt }}" {{ (string)$selectedYear === (string)$yearOpt ? 'selected' : '' }}>
-                            {{ $yearOpt }}
-                        </option>
-                    @endforeach
-                </select>
+    <!-- Filter Bar -->
+    <div class="rounded-xl border border-divider-subtle/30 bg-white p-4 shadow-sm sm:p-6 mb-6">
+        <form method="GET" action="{{ route('superadmin.dashboard') }}">
+            <div class="grid grid-cols-1 items-end gap-4 sm:grid-cols-[1fr_1fr_1fr_auto]">
+                <div>
+                    <label class="block text-xs font-semibold text-text-main mb-1.5 uppercase tracking-wider">Year</label>
+                    <select name="year" onchange="this.form.submit()" class="w-full rounded-lg border border-divider-subtle/50 bg-white px-4 py-3 text-sm text-text-main outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20">
+                        <option value="">All Years</option>
+                        @foreach($availableYears as $yearOpt)
+                            <option value="{{ $yearOpt }}" {{ (string)$selectedYear === (string)$yearOpt ? 'selected' : '' }}>
+                                {{ $yearOpt }}
+                            </option>
+                        @endforeach
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-text-main mb-1.5 uppercase tracking-wider">Faculty</label>
+                    <select name="faculty" onchange="this.form.submit()" class="w-full rounded-lg border border-divider-subtle/50 bg-white px-4 py-3 text-sm text-text-main outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20">
+                        <option value="">All Faculties</option>
+                        @foreach($faculties as $fac)
+                            <option value="{{ $fac->id }}" {{ (string)$selectedFaculty === (string)$fac->id ? 'selected' : '' }}>
+                                {{ $fac->faculty_name }}
+                            </option>
+                        @endforeach
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-text-main mb-1.5 uppercase tracking-wider">Module Focus</label>
+                    <select name="module" onchange="this.form.submit()" class="w-full rounded-lg border border-divider-subtle/50 bg-white px-4 py-3 text-sm text-text-main outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20">
+                        <option value="">All Modules</option>
+                        <option value="awards" {{ $selectedModule === 'awards' ? 'selected' : '' }}>Awards</option>
+                        <option value="kpi" {{ $selectedModule === 'kpi' ? 'selected' : '' }}>KPI Performance</option>
+                        <option value="ip" {{ $selectedModule === 'ip' ? 'selected' : '' }}>Intellectual Property (IP)</option>
+                        <option value="community" {{ $selectedModule === 'community' ? 'selected' : '' }}>Community, STEM & Industry</option>
+                        <option value="products" {{ $selectedModule === 'products' ? 'selected' : '' }}>TRL Products</option>
+                    </select>
+                </div>
+                <div>
+                    <a href="{{ route('superadmin.dashboard') }}" class="inline-flex min-h-11 items-center justify-center rounded-lg border border-divider-subtle/50 bg-white px-5 py-3 text-sm font-bold text-text-main transition hover:bg-background-light">Reset</a>
+                </div>
             </div>
-
-            <!-- Faculty Filter -->
-            <div>
-                <label class="block text-xs font-semibold text-text-main mb-1.5 uppercase tracking-wider">Faculty</label>
-                <select name="faculty" id="filterFaculty"
-                    class="w-full h-11 px-4 bg-background-light border-none rounded-lg text-sm text-text-main focus:ring-2 focus:ring-primary">
-                    <option value="">All Faculties</option>
-                    @foreach($faculties as $fac)
-                        <option value="{{ $fac->id }}" {{ (string)$selectedFaculty === (string)$fac->id ? 'selected' : '' }}>
-                            {{ $fac->faculty_name }} ({{ $fac->faculty_code }})
-                        </option>
-                    @endforeach
-                </select>
-            </div>
-
-            <!-- Module Filter -->
-            <div>
-                <label class="block text-xs font-semibold text-text-main mb-1.5 uppercase tracking-wider">Module Focus</label>
-                <select name="module" id="filterModule"
-                    class="w-full h-11 px-4 bg-background-light border-none rounded-lg text-sm text-text-main focus:ring-2 focus:ring-primary">
-                    <option value="">All Modules</option>
-                    <option value="awards" {{ $selectedModule === 'awards' ? 'selected' : '' }}>Awards</option>
-                    <option value="kpi" {{ $selectedModule === 'kpi' ? 'selected' : '' }}>KPI Performance</option>
-                    <option value="ip" {{ $selectedModule === 'ip' ? 'selected' : '' }}>Intellectual Property (IP)</option>
-                    <option value="community" {{ $selectedModule === 'community' ? 'selected' : '' }}>Community, STEM & Industry</option>
-                    <option value="products" {{ $selectedModule === 'products' ? 'selected' : '' }}>TRL Products</option>
-                </select>
-            </div>
-        </div>
-        <div class="mt-4 flex items-center gap-3">
-            <button type="submit"
-                class="px-6 py-2.5 bg-primary text-white text-sm font-semibold rounded-lg hover:bg-primary/90 transition-colors flex items-center gap-2 shadow-sm">
-                <span class="material-symbols-outlined text-sm">filter_alt</span> Apply Filters
-            </button>
-            <a href="{{ route('superadmin.dashboard') }}"
-                class="px-6 py-2.5 border border-divider-subtle text-text-main text-sm font-medium rounded-lg hover:bg-background-light transition-colors flex items-center gap-2">
-                <span class="material-symbols-outlined text-sm">restart_alt</span> Reset Filters
-            </a>
-        </div>
-    </form>
+        </form>
+    </div>
 
     <!-- Summary Cards Grid -->
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">

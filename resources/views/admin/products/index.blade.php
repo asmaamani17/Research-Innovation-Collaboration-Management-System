@@ -11,50 +11,54 @@
     </header>
 
     <div class="space-y-6 px-4 pb-8 sm:px-8">
-        <form method="GET" action="{{ route('admin.products.index') }}" class="grid grid-cols-1 items-end gap-4 rounded-xl border border-divider-subtle/30 bg-white p-4 shadow-sm sm:grid-cols-2 xl:grid-cols-5 sm:p-5">
-            <div>
-                <label for="dashboard-trl-filter" class="mb-2 block text-sm font-medium text-text-main">TRL</label>
-                <select id="dashboard-trl-filter" name="trl" class="h-11 w-full rounded-lg border border-divider-subtle/40 bg-white px-3 text-sm text-text-main focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20">
-                    <option value="">All</option>
-                    @foreach(range(1, 9) as $level)
-                        <option value="{{ $level }}" @selected((string) request('trl') === (string) $level)>TRL {{ $level }}</option>
-                    @endforeach
-                </select>
-            </div>
-            <div>
-                <label for="dashboard-status-filter" class="mb-2 block text-sm font-medium text-text-main">Status</label>
-                <select id="dashboard-status-filter" name="status" class="h-11 w-full rounded-lg border border-divider-subtle/40 bg-white px-3 text-sm text-text-main focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20">
-                    <option value="">All</option>
-                    <option value="__not_set__" @selected(request('status') === '__not_set__')>Not Set</option>
-                    @foreach($allStatuses as $status)
-                        <option value="{{ $status }}" @selected(request('status') === $status)>{{ $status }}</option>
-                    @endforeach
-                </select>
-            </div>
-            <div>
-                <label for="dashboard-faculty-filter" class="mb-2 block text-sm font-medium text-text-main">Faculty</label>
-                <select id="dashboard-faculty-filter" name="faculty" class="h-11 w-full rounded-lg border border-divider-subtle/40 bg-white px-3 text-sm text-text-main focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20">
-                    <option value="">All</option>
-                    <option value="__not_set__" @selected(request('faculty') === '__not_set__')>Not Set</option>
-                    @foreach($allFaculties as $faculty)
-                        <option value="{{ $faculty }}" @selected(request('faculty') === $faculty)>{{ $faculty }}</option>
-                    @endforeach
-                </select>
-            </div>
-            <div>
-                <label for="dashboard-year-filter" class="mb-2 block text-sm font-medium text-text-main">Year</label>
-                <select id="dashboard-year-filter" name="year" class="h-11 w-full rounded-lg border border-divider-subtle/40 bg-white px-3 text-sm text-text-main focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20">
-                    <option value="">All</option>
-                    @foreach($allYears as $year)
-                        <option value="{{ $year }}" @selected((string) request('year') === (string) $year)>{{ $year }}</option>
-                    @endforeach
-                </select>
-            </div>
-            <div class="flex gap-2">
-                <button type="submit" class="h-11 flex-1 rounded-lg bg-primary px-4 text-sm font-bold text-white transition hover:bg-primary/90">Apply</button>
-                <a href="{{ route('admin.products.index') }}" class="inline-flex h-11 items-center justify-center rounded-lg border border-divider-subtle/40 bg-white px-4 text-sm font-bold text-text-main transition hover:bg-background-light">Reset</a>
-            </div>
-        </form>
+        <!-- Filter Bar -->
+        <div class="rounded-xl border border-divider-subtle/30 bg-white p-4 shadow-sm sm:p-6 mb-6">
+            <form method="GET" action="{{ route('admin.products.index') }}">
+                <div class="grid grid-cols-1 items-end gap-4 sm:grid-cols-[1fr_1fr_1fr_1fr_auto]">
+                    <div>
+                        <label class="block text-xs font-semibold text-text-main mb-1.5 uppercase tracking-wider">TRL</label>
+                        <select name="trl" onchange="this.form.submit()" class="w-full rounded-lg border border-divider-subtle/50 bg-white px-4 py-3 text-sm text-text-main outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20">
+                            <option value="">All</option>
+                            @foreach(range(1, 9) as $level)
+                                <option value="{{ $level }}" @selected((string) request('trl') === (string) $level)>TRL {{ $level }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-text-main mb-1.5 uppercase tracking-wider">Status</label>
+                        <select name="status" onchange="this.form.submit()" class="w-full rounded-lg border border-divider-subtle/50 bg-white px-4 py-3 text-sm text-text-main outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20">
+                            <option value="">All</option>
+                            <option value="__not_set__" @selected(request('status') === '__not_set__')">Not Set</option>
+                            @foreach($allStatuses as $status)
+                                <option value="{{ $status }}" @selected(request('status') === $status)">{{ $status }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-text-main mb-1.5 uppercase tracking-wider">Faculty</label>
+                        <select name="faculty" onchange="this.form.submit()" class="w-full rounded-lg border border-divider-subtle/50 bg-white px-4 py-3 text-sm text-text-main outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20">
+                            <option value="">All</option>
+                            <option value="__not_set__" @selected(request('faculty') === '__not_set__')">Not Set</option>
+                            @foreach($allFaculties as $faculty)
+                                <option value="{{ $faculty }}" @selected(request('faculty') === $faculty)">{{ $faculty }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-text-main mb-1.5 uppercase tracking-wider">Year</label>
+                        <select name="year" onchange="this.form.submit()" class="w-full rounded-lg border border-divider-subtle/50 bg-white px-4 py-3 text-sm text-text-main outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20">
+                            <option value="">All</option>
+                            @foreach($allYears as $year)
+                                <option value="{{ $year }}" @selected((string) request('year') === (string) $year)">{{ $year }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                    <div>
+                        <a href="{{ route('admin.products.index') }}" class="inline-flex min-h-11 items-center justify-center rounded-lg border border-divider-subtle/50 bg-white px-5 py-3 text-sm font-bold text-text-main transition hover:bg-background-light">Reset</a>
+                    </div>
+                </div>
+            </form>
+        </div>
 
         <section class="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4" aria-label="TRL product summary">
             @foreach([

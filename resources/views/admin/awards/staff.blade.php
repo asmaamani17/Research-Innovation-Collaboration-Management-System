@@ -33,24 +33,18 @@
             </div>
         @endif
 
-        <!-- Table Controls -->
-        <form method="GET" action="{{ route('admin.staff.index') }}" class="mb-4">
-            <div class="bg-white border border-divider-subtle/30 rounded-xl p-2 flex items-center gap-4">
-                <div class="flex-1 relative">
-                    <div class="absolute inset-y-0 left-0 flex items-center pl-4 pointer-events-none text-divider-subtle">
-                        <span class="material-symbols-outlined">search</span>
-                    </div>
-                    <input 
-                        type="text"
-                        name="search" 
-                        value="{{ request('search') }}"
-                        class="w-full h-11 pl-12 pr-4 bg-background-light border-none rounded-lg focus:ring-2 focus:ring-primary text-sm text-text-main placeholder:text-divider-subtle" 
-                        placeholder="Search staff by name or ID..." 
-                    />
+        <!-- Filters -->
+        <div class="bg-white border border-divider-subtle/30 rounded-xl p-6 mb-6 shadow-sm">
+            <div class="flex flex-wrap gap-4">
+                <div class="flex-1 min-w-[200px]">
+                    <input type="text" id="search" placeholder="Search staff by name or ID..."
+                        class="w-full px-4 py-3 border border-divider-subtle/30 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all"
+                        value="{{ request('search') }}">
                 </div>
-                <div class="w-48">
-                    <select name="faculty_id" class="w-full h-11 px-4 bg-background-light border-none rounded-lg focus:ring-2 focus:ring-primary text-sm text-text-main">
+                <div class="min-w-[200px]">
+                    <select id="faculty_id" class="w-full px-4 py-3 border border-divider-subtle/30 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all">
                         <option value="">All Faculties</option>
+                        <option value="0" {{ request('faculty_id') == '0' ? 'selected' : '' }}>No Faculty</option>
                         @foreach($faculties as $faculty)
                             <option value="{{ $faculty->id }}" {{ request('faculty_id') == $faculty->id ? 'selected' : '' }}>
                                 {{ $faculty->faculty_name }}
@@ -58,18 +52,14 @@
                         @endforeach
                     </select>
                 </div>
-                <button type="submit" class="h-11 px-4 flex items-center gap-2 border border-divider-subtle/40 rounded-lg text-sm font-medium text-text-main hover:bg-background-light transition-colors">
-                    <span class="material-symbols-outlined text-lg">filter_list</span>
+                <button onclick="applyFilters()" class="px-6 py-3 bg-primary text-white rounded-lg font-bold hover:bg-primary/90 transition-all">
                     Filter
                 </button>
-                @if(request('search') || request('faculty_id'))
-                    <a href="{{ route('admin.staff.index') }}" class="h-11 px-4 flex items-center gap-2 border border-divider-subtle/40 rounded-lg text-sm font-medium text-text-main hover:bg-background-light transition-colors">
-                        <span class="material-symbols-outlined text-lg">clear</span>
-                        Clear
-                    </a>
-                @endif
+                <button onclick="clearFilters()" class="px-6 py-3 bg-gray-200 text-gray-700 rounded-lg font-bold hover:bg-gray-300 transition-all">
+                    Clear
+                </button>
             </div>
-        </form>
+        </div>
 
         <!-- Data Table Section -->
         <div class="bg-white border border-divider-subtle/30 rounded-xl overflow-hidden shadow-sm">
@@ -204,9 +194,9 @@
                     </div>
                     <div>
                         <label class="block text-sm font-medium text-text-main mb-2">Faculty</label>
-                        <select name="faculty_id" required
+                        <select name="faculty_id"
                             class="w-full h-11 px-4 bg-background-light border border-divider-subtle/40 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent text-sm">
-                            <option value="">Select Faculty</option>
+                            <option value="">No Faculty</option>
                             @foreach($faculties as $faculty)
                                 <option value="{{ $faculty->id }}">{{ $faculty->faculty_name }}</option>
                             @endforeach
@@ -259,9 +249,9 @@
                     </div>
                     <div>
                         <label class="block text-sm font-medium text-text-main mb-2">Faculty</label>
-                        <select name="faculty_id" id="edit_faculty_id" required
+                        <select name="faculty_id" id="edit_faculty_id"
                             class="w-full h-11 px-4 bg-background-light border border-divider-subtle/40 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent text-sm">
-                            <option value="">Select Faculty</option>
+                            <option value="">No Faculty</option>
                             @foreach($faculties as $faculty)
                                 <option value="{{ $faculty->id }}">{{ $faculty->faculty_name }}</option>
                             @endforeach
@@ -290,6 +280,21 @@
 <script>
     const staffUpdateUrlTemplate = @json(route('admin.staff.update', ['id' => '__ID__']));
     const staffStoreUrl = @json(route('admin.staff.store'));
+
+    function applyFilters() {
+        const search = document.getElementById('search').value;
+        const faculty_id = document.getElementById('faculty_id').value;
+
+        const params = new URLSearchParams();
+        if (search) params.append('search', search);
+        if (faculty_id) params.append('faculty_id', faculty_id);
+
+        window.location.href = `{{ route('admin.staff.index') }}?${params.toString()}`;
+    }
+
+    function clearFilters() {
+        window.location.href = '{{ route('admin.staff.index') }}';
+    }
 
     function openAddStaffModal() {
         document.getElementById('addStaffModal').classList.remove('hidden');

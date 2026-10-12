@@ -33,33 +33,22 @@
             </div>
         @endif
 
-        <!-- Table Controls -->
-        <form method="GET" action="{{ route('admin.faculty.index') }}" class="mb-4">
-            <div class="bg-white border border-divider-subtle/30 rounded-xl p-2 flex items-center gap-4">
-                <div class="flex-1 relative">
-                    <div class="absolute inset-y-0 left-0 flex items-center pl-4 pointer-events-none text-divider-subtle">
-                        <span class="material-symbols-outlined">search</span>
-                    </div>
-                    <input 
-                        type="text"
-                        name="search" 
-                        value="{{ request('search') }}"
-                        class="w-full h-11 pl-12 pr-4 bg-background-light border-none rounded-lg focus:ring-2 focus:ring-primary text-sm text-text-main placeholder:text-divider-subtle" 
-                        placeholder="Search faculties by name or code..." 
-                    />
+        <!-- Filters -->
+        <div class="bg-white border border-divider-subtle/30 rounded-xl p-6 mb-6 shadow-sm">
+            <div class="flex flex-wrap gap-4">
+                <div class="flex-1 min-w-[200px]">
+                    <input type="text" id="search" placeholder="Search faculties by name or code..."
+                        class="w-full px-4 py-3 border border-divider-subtle/30 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all"
+                        value="{{ request('search') }}">
                 </div>
-                <button type="submit" class="h-11 px-4 flex items-center gap-2 border border-divider-subtle/40 rounded-lg text-sm font-medium text-text-main hover:bg-background-light transition-colors">
-                    <span class="material-symbols-outlined text-lg">filter_list</span>
+                <button onclick="applyFilters()" class="px-6 py-3 bg-primary text-white rounded-lg font-bold hover:bg-primary/90 transition-all">
                     Filter
                 </button>
-                @if(request('search'))
-                    <a href="{{ route('admin.faculty.index') }}" class="h-11 px-4 flex items-center gap-2 border border-divider-subtle/40 rounded-lg text-sm font-medium text-text-main hover:bg-background-light transition-colors">
-                        <span class="material-symbols-outlined text-lg">clear</span>
-                        Clear
-                    </a>
-                @endif
+                <button onclick="clearFilters()" class="px-6 py-3 bg-gray-200 text-gray-700 rounded-lg font-bold hover:bg-gray-300 transition-all">
+                    Clear
+                </button>
             </div>
-        </form>
+        </div>
 
         <!-- Data Table Section -->
         <div class="bg-white border border-divider-subtle/30 rounded-xl overflow-hidden shadow-sm">
@@ -239,6 +228,19 @@
 <script>
     const facultyUpdateUrlTemplate = @json(route('admin.faculty.update', ['id' => '__ID__']));
     const facultyStoreUrl = @json(route('admin.faculty.store'));
+
+    function applyFilters() {
+        const search = document.getElementById('search').value;
+
+        const params = new URLSearchParams();
+        if (search) params.append('search', search);
+
+        window.location.href = `{{ route('admin.faculty.index') }}?${params.toString()}`;
+    }
+
+    function clearFilters() {
+        window.location.href = '{{ route('admin.faculty.index') }}';
+    }
 
     function openAddFacultyModal() {
         document.getElementById('addFacultyModal').classList.remove('hidden');

@@ -35,7 +35,19 @@ class CompetitionController extends Controller
 
         $events = $query->orderBy('start_date', 'desc')->paginate(10);
 
-        return view('admin.events', compact('events'));
+        // Get available years for filter dropdown
+        $availableYears = Competition::query()
+            ->whereNotNull('start_date')
+            ->selectRaw('DISTINCT YEAR(start_date) as year')
+            ->orderByDesc('year')
+            ->pluck('year');
+
+        // If no years found, add current year as default
+        if ($availableYears->isEmpty()) {
+            $availableYears = collect([date('Y')]);
+        }
+
+        return view('admin.awards.events.index', compact('events', 'availableYears'));
     }
 
     /**
@@ -43,7 +55,7 @@ class CompetitionController extends Controller
      */
     public function create()
     {
-        return view('admin.events.create');
+        return view('admin.awards.events.create');
     }
 
     /**
@@ -138,13 +150,42 @@ class CompetitionController extends Controller
         ])->findOrFail($id);
 
         // Calculate event statistics (case-insensitive matching)
+        // Check award_level, award_name, and exhibition_result.Description fields
+        // Support both English (Gold, Silver, Bronze) and Malay (Emas, Perak, Gangsa)
         $stats = [
             'total_awards' => $competition->awards->count(),
             'unique_participants' => $competition->staff->count(),
             'unique_projects' => $competition->projects->count(),
-            'gold_awards' => $competition->awards->filter(fn($a) => strtoupper($a->award_level) === 'GOLD')->count(),
-            'silver_awards' => $competition->awards->filter(fn($a) => strtoupper($a->award_level) === 'SILVER')->count(),
-            'bronze_awards' => $competition->awards->filter(fn($a) => strtoupper($a->award_level) === 'BRONZE')->count(),
+            'gold_awards' => $competition->awards->filter(function($a) {
+                $level = strtoupper($a->award_level ?? '');
+                $name = strtoupper($a->award_name ?? '');
+                $result = strtoupper($a->exhibitionResult->Description ?? '');
+                return $level === 'GOLD' || str_contains($name, 'GOLD') || str_contains($result, 'EMAS');
+            })->count(),
+            'silver_awards' => $competition->awards->filter(function($a) {
+                $level = strtoupper($a->award_level ?? '');
+                $name = strtoupper($a->award_name ?? '');
+                $result = strtoupper($a->exhibitionResult->Description ?? '');
+                return $level === 'SILVER' || str_contains($name, 'SILVER') || str_contains($result, 'PERAK');
+            })->count(),
+            'bronze_awards' => $competition->awards->filter(function($a) {
+                $level = strtoupper($a->award_level ?? '');
+                $name = strtoupper($a->award_name ?? '');
+                $result = strtoupper($a->exhibitionResult->Description ?? '');
+                return $level === 'BRONZE' || str_contains($name, 'BRONZE') || str_contains($result, 'GANGSA');
+            })->count(),
+            'platinum_awards' => $competition->awards->filter(function($a) {
+                $level = strtoupper($a->award_level ?? '');
+                $name = strtoupper($a->award_name ?? '');
+                $result = strtoupper($a->exhibitionResult->Description ?? '');
+                return $level === 'PLATINUM' || str_contains($name, 'PLATINUM') || str_contains($result, 'PLATINUM');
+            })->count(),
+            'special_awards' => $competition->awards->filter(function($a) {
+                $level = strtoupper($a->award_level ?? '');
+                $name = strtoupper($a->award_name ?? '');
+                $result = strtoupper($a->exhibitionResult->Description ?? '');
+                return $level === 'SPECIAL' || str_contains($name, 'SPECIAL') || str_contains($result, 'ANUGERAH KHAS');
+            })->count(),
             'faculties_involved' => $competition->staff->pluck('faculty.id')->unique()->count(),
         ];
 
@@ -160,7 +201,7 @@ class CompetitionController extends Controller
         // Group staff by faculty
         $staff_by_faculty = $competition->staff->groupBy('faculty.faculty_name');
 
-        return view('admin.awards.competitions.show', compact('competition', 'stats', 'award_stats', 'award_type_stats', 'awards_by_level', 'staff_by_faculty'));
+        return view('admin.awards.events.show', compact('competition', 'stats', 'award_stats', 'award_type_stats', 'awards_by_level', 'staff_by_faculty'));
     }
 
     /**
@@ -174,7 +215,7 @@ class CompetitionController extends Controller
             ->orderBy('created_at', 'desc')
             ->paginate(15);
 
-        return view('admin.awards.competitions.show', compact('event', 'awards'))->with('tab', 'awards');
+        return view('admin.awards.events.show', compact('event', 'awards'))->with('tab', 'awards');
     }
 
     /**
@@ -193,7 +234,7 @@ class CompetitionController extends Controller
             ->orderBy('staff_name')
             ->get();
 
-        return view('admin.awards.competitions.show', compact('event', 'staff'))->with('tab', 'staff');
+        return view('admin.awards.events.show', compact('event', 'staff'))->with('tab', 'staff');
     }
 
     /**
@@ -211,7 +252,7 @@ class CompetitionController extends Controller
             ->orderBy('created_at', 'desc')
             ->get();
 
-        return view('admin.awards.competitions.show', compact('event', 'projects'))->with('tab', 'projects');
+        return view('admin.awards.events.show', compact('event', 'projects'))->with('tab', 'projects');
     }
 
     /**
@@ -275,7 +316,7 @@ class CompetitionController extends Controller
             ->orderBy('start_date', 'desc')
             ->get();
 
-        return view('admin.events', compact('events'))->with('year', $year);
+        return view('admin.awards.events.index', compact('events'))->with('year', $year);
     }
 
     /**
@@ -288,7 +329,7 @@ class CompetitionController extends Controller
             ->orderBy('start_date', 'desc')
             ->paginate(15);
 
-        return view('admin.events', compact('events'))->with('level', $level);
+        return view('admin.awards.events.index', compact('events'))->with('level', $level);
     }
 
     /**
@@ -297,6 +338,6 @@ class CompetitionController extends Controller
     public function edit($id)
     {
         $event = Competition::findOrFail($id);
-        return view('admin.events.edit', compact('event'));
+        return view('admin.awards.events.edit', compact('event'));
     }
 }

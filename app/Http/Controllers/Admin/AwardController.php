@@ -609,9 +609,16 @@ class AwardController extends Controller
             }
 
             if (!empty($filters['faculty'])) {
-                $query->whereHas('staff', function($q) use ($filters) {
-                    $q->where('faculty_id', $filters['faculty']);
-                });
+                if ($filters['faculty'] == '0') {
+                    $query->whereDoesntHave('staff')
+                        ->orWhereHas('staff', function($q) {
+                            $q->whereNull('faculty_id');
+                        });
+                } else {
+                    $query->whereHas('staff', function($q) use ($filters) {
+                        $q->where('faculty_id', $filters['faculty']);
+                    });
+                }
             }
 
             return $query;
@@ -739,7 +746,7 @@ class AwardController extends Controller
     {
         $filters = $request->validate([
             'year' => ['nullable', 'integer', 'between:1900,2100'],
-            'faculty' => ['nullable', 'integer', 'exists:faculties,id'],
+            'faculty' => ['nullable', 'string'],
             'type' => ['nullable', 'string', 'in:levels,types,others,monthly,faculties,exhibition,results,stats'],
         ]);
 
@@ -749,9 +756,16 @@ class AwardController extends Controller
             }
 
             if (!empty($filters['faculty'])) {
-                $query->whereHas('staff', function($q) use ($filters) {
-                    $q->where('faculty_id', $filters['faculty']);
-                });
+                if ($filters['faculty'] == '0') {
+                    $query->whereDoesntHave('staff')
+                        ->orWhereHas('staff', function($q) {
+                            $q->whereNull('faculty_id');
+                        });
+                } else {
+                    $query->whereHas('staff', function($q) use ($filters) {
+                        $q->where('faculty_id', $filters['faculty']);
+                    });
+                }
             }
 
             return $query;
@@ -814,8 +828,8 @@ class AwardController extends Controller
                     ->leftJoin('faculties', 'staff.faculty_id', '=', 'faculties.id')
                     ->leftJoin('exhibition_results', 'awards.exhibition_result_id', '=', 'exhibition_results.ExhibitionResultID')
                     ->selectRaw("COALESCE(faculties.id, 0) as id,
-                        COALESCE(faculties.faculty_code, 'No Faculty') as faculty_code,
-                        COALESCE(faculties.faculty_name, 'No Faculty') as faculty_name,
+                        COALESCE(faculties.faculty_code, 'NO FACULTY') as faculty_code,
+                        COALESCE(faculties.faculty_name, 'NO FACULTY') as faculty_name,
                         COALESCE(exhibition_results.Description, awards.award_name, 'Not Specified') as result_description,
                         COUNT(awards.id) as count");
 
@@ -824,7 +838,11 @@ class AwardController extends Controller
                 }
 
                 if (!empty($filters['faculty'])) {
-                    $query->where('faculties.id', $filters['faculty']);
+                    if ($filters['faculty'] == '0') {
+                        $query->whereNull('faculties.id');
+                    } else {
+                        $query->where('faculties.id', $filters['faculty']);
+                    }
                 }
 
                 $data = $query->groupBy('faculties.id', 'faculties.faculty_code', 'faculties.faculty_name', 'exhibition_results.ExhibitionResultID', 'exhibition_results.Description', 'awards.award_name')

@@ -1,182 +1,226 @@
 @extends('layouts.admin')
 
-@section('title', 'Award Details')
-
-@php
-    $awardStyles = [
-        'GOLD' => ['text' => 'text-yellow-600', 'icon' => 'text-yellow-500', 'badge' => 'bg-yellow-100 text-yellow-700'],
-        'SILVER' => ['text' => 'text-gray-600', 'icon' => 'text-gray-400', 'badge' => 'bg-gray-100 text-gray-700'],
-        'BRONZE' => ['text' => 'text-orange-700', 'icon' => 'text-orange-600', 'badge' => 'bg-orange-100 text-orange-700'],
-        'SPECIAL' => ['text' => 'text-primary', 'icon' => 'text-primary', 'badge' => 'bg-primary/10 text-primary'],
-        'PLATINUM' => ['text' => 'text-cyan-700', 'icon' => 'text-cyan-500', 'badge' => 'bg-cyan-100 text-cyan-700'],
-    ];
-    $awardKey = strtoupper($award->award_level ?? 'AWARD');
-    $style = $awardStyles[$awardKey] ?? ['text' => 'text-text-main', 'icon' => 'text-primary', 'badge' => 'bg-primary/10 text-primary'];
-@endphp
+@section('title', $award->award_name)
 
 @section('content')
-<!-- Page Header -->
-<header class="px-8 py-8 flex flex-wrap items-center justify-between gap-4">
-    <div class="flex flex-col">
-        <h2 class="text-text-main text-3xl font-black leading-tight tracking-tight">
-            Award Details
-        </h2>
-        <p class="text-divider-subtle font-medium text-sm mt-1">
-            View award information and evidence
-        </p>
-    </div>
-    <div class="flex items-center gap-3">
-        <a href="{{ route('admin.awards.edit', $award->id) }}" class="flex min-w-[120px] cursor-pointer items-center justify-center gap-2 overflow-hidden rounded-lg h-12 px-6 bg-primary text-white text-sm font-bold shadow-lg hover:bg-primary/90 transition-all">
-            <span class="material-symbols-outlined text-sm">edit</span>
-            <span>Edit Award</span>
-        </a>
-        <a href="{{ route('admin.awards') }}" class="flex min-w-[160px] cursor-pointer items-center justify-center gap-2 overflow-hidden rounded-lg h-12 px-6 bg-gray-200 text-gray-700 text-sm font-bold shadow-lg hover:bg-gray-300 transition-all">
-            <span class="material-symbols-outlined text-sm">arrow_back</span>
-            <span>Back to Awards</span>
-        </a>
-    </div>
-</header>
-
-<div class="px-8 pb-8">
-    <!-- Main Content -->
-    <div class="max-w-5xl mx-auto space-y-6">
-        <!-- Award Summary Card -->
-        <div class="bg-white border border-divider-subtle/30 rounded-xl shadow-sm overflow-hidden">
-            <div class="p-8">
-                <div class="flex items-start gap-6">
-                    <!-- Award Icon -->
-                    <div class="size-20 rounded-full {{ $style['badge'] }} flex items-center justify-center shrink-0">
-                        <span class="material-symbols-outlined {{ $style['icon'] }} text-5xl">emoji_events</span>
-                    </div>
-                    
-                    <!-- Award Info -->
-                    <div class="flex-1">
-                        <h3 class="text-2xl font-bold text-text-main mb-2">{{ $award->award_name }}</h3>
-                        <div class="flex flex-wrap gap-3 mb-4">
-                            <span class="px-3 py-1 rounded-full {{ $style['badge'] }} text-sm font-bold">{{ $award->award_level }}</span>
-                            <span class="px-3 py-1 rounded-full bg-blue-100 text-blue-700 text-sm font-bold">{{ $award->award_type }}</span>
-                            @if($award->exhibitionResult)
-                                <span class="px-3 py-1 rounded-full bg-green-100 text-green-700 text-sm font-bold">
-                                    {{ $award->exhibitionResult->Description }}
-                                </span>
-                            @endif
-                        </div>
-                        <p class="text-text-main/80">
-                            Awarded on {{ optional($award->award_date)->format('F d, Y') ?? 'N/A' }}
-                        </p>
-                    </div>
-                </div>
+    <!-- Page Header -->
+    <header class="px-8 py-8 flex flex-wrap items-center justify-between gap-4">
+        <div class="flex flex-col">
+            <div class="flex items-center gap-4 mb-2">
+                <a href="{{ route('admin.awards') }}" class="text-primary hover:text-primary/80 transition-colors">
+                    <span class="material-symbols-outlined">arrow_back</span>
+                </a>
+                <h2 class="text-text-main text-3xl font-black leading-tight tracking-tight">
+                    {{ $award->award_name }}
+                </h2>
             </div>
+            <p class="text-divider-subtle font-medium text-sm">
+                @php
+                    $levelColors = [
+                        'GOLD' => 'bg-yellow-100 text-yellow-700',
+                        'Gold' => 'bg-yellow-100 text-yellow-700',
+                        'SILVER' => 'bg-gray-100 text-gray-700',
+                        'Silver' => 'bg-gray-100 text-gray-700',
+                        'BRONZE' => 'bg-orange-100 text-orange-700',
+                        'Bronze' => 'bg-orange-100 text-orange-700',
+                        'PLATINUM' => 'bg-cyan-100 text-cyan-700',
+                        'Platinum' => 'bg-cyan-100 text-cyan-700',
+                        'SPECIAL' => 'bg-purple-100 text-purple-700',
+                        'Special' => 'bg-purple-100 text-purple-700'
+                    ];
+                    $color = $levelColors[$award->award_name] ?? 'bg-gray-100 text-gray-700';
+                @endphp
+                <span class="px-2 py-1 rounded-full text-[10px] font-bold {{ $color }}">
+                    {{ $award->award_name }}
+                </span>
+                <span class="px-2 py-1 rounded-full text-[10px] font-bold bg-blue-100 text-blue-700">
+                    {{ $award->award_type }}
+                </span>
+            </p>
         </div>
+        <div class="flex items-center gap-2">
+            <a href="{{ route('admin.awards.edit', $award->id) }}"
+                class="flex items-center gap-2 px-6 py-3 bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors font-medium shadow-lg">
+                <span class="material-symbols-outlined">edit</span>
+                <span>Edit</span>
+            </a>
+        </div>
+    </header>
 
-        <!-- Recipient Information -->
-        <div class="bg-white border border-divider-subtle/30 rounded-xl shadow-sm overflow-hidden">
-            <div class="px-6 py-4 border-b border-divider-subtle/30 bg-background-light">
-                <h3 class="text-lg font-bold text-text-main">Recipient Information</h3>
-            </div>
-            <div class="p-6">
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <!-- Staff -->
+    <!-- Two Column Layout -->
+    <div class="px-8 pb-8 grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <!-- Main Content -->
+        <div class="lg:col-span-2 space-y-8">
+            <!-- Award Details Section -->
+            <div class="bg-white border border-divider-subtle/30 rounded-xl overflow-hidden shadow-sm">
+                <div class="px-6 py-4 border-b border-divider-subtle/30 bg-background-light/50">
+                    <h3 class="text-lg font-bold text-text-main">Award Details</h3>
+                </div>
+                <div class="p-6 space-y-4">
                     <div class="flex items-start gap-4">
-                        <div class="size-12 rounded-full bg-gray-200 bg-cover shrink-0"
-                            style="background-image: url('https://ui-avatars.com/api/?name={{ rawurlencode($award->staff->staff_name ?? 'Unknown') }}&background=184290&color=fff')">
+                        <div class="size-16 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
+                            <span class="material-symbols-outlined text-4xl text-primary">emoji_events</span>
                         </div>
-                        <div>
-                            <p class="text-sm text-divider-subtle mb-1">Staff Member</p>
-                            <p class="text-text-main font-medium">{{ $award->staff->staff_name ?? 'Unknown Staff' }}</p>
-                            <p class="text-sm text-divider-subtle">{{ $award->staff->staff_id ?? '' }}</p>
+                        <div class="flex-1">
+                            <h4 class="text-xl font-bold text-text-main">{{ $award->award_name }}</h4>
+                            <p class="text-sm text-text-main/80 mt-1">
+                                Award Level: <span class="font-semibold">{{ $award->award_level }}</span>
+                            </p>
+                            <p class="text-sm text-text-main/80 mt-1">
+                                Award Date: {{ $award->award_date ? \Carbon\Carbon::parse($award->award_date)->format('M d, Y') : 'N/A' }}
+                            </p>
                         </div>
                     </div>
-                    
-                    <!-- Faculty -->
-                    <div>
-                        <p class="text-sm text-divider-subtle mb-1">Faculty</p>
-                        <p class="text-text-main font-medium">{{ $award->staff->faculty->faculty_name ?? 'N/A' }}</p>
-                        <span class="px-2 py-1 rounded bg-primary/10 text-primary text-[10px] font-bold">
-                            {{ $award->staff->faculty->faculty_code ?? 'N/A' }}
-                        </span>
+                    @if($award->exhibitionResult)
+                    <div class="pt-4 border-t border-divider-subtle/30">
+                        <p class="text-sm text-divider-subtle mb-1">Exhibition Result</p>
+                        <p class="text-text-main font-medium">{{ $award->exhibitionResult->Description }}</p>
                     </div>
-                    
-                    <!-- Project -->
-                    <div class="md:col-span-2">
-                        <p class="text-sm text-divider-subtle mb-1">Project</p>
-                        <p class="text-text-main font-medium">{{ $award->project->project_title ?? 'Unknown Project' }}</p>
-                        <p class="text-sm text-divider-subtle">{{ $award->project->project_id ?? '' }}</p>
+                    @endif
+                    @if($award->invention_award)
+                    <div class="pt-4 border-t border-divider-subtle/30">
+                        <p class="text-sm text-divider-subtle mb-1">Invention Award</p>
+                        <p class="text-text-main font-medium">{{ $award->invention_award == 1 ? 'Ya (Yes)' : 'Tidak (No)' }}</p>
                     </div>
+                    @endif
                 </div>
             </div>
-        </div>
 
-        <!-- Event Information -->
-        <div class="bg-white border border-divider-subtle/30 rounded-xl shadow-sm overflow-hidden">
-            <div class="px-6 py-4 border-b border-divider-subtle/30 bg-background-light">
-                <h3 class="text-lg font-bold text-text-main">Event Information</h3>
+            <!-- Recipient Information Section -->
+            <div class="bg-white border border-divider-subtle/30 rounded-xl overflow-hidden shadow-sm">
+                <div class="px-6 py-4 border-b border-divider-subtle/30 bg-background-light/50">
+                    <h3 class="text-lg font-bold text-text-main">Recipient Information</h3>
+                </div>
+                <div class="divide-y divide-divider-subtle/20">
+                    <div class="px-6 py-4">
+                        <div class="flex items-center gap-4">
+                            <div class="size-12 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold text-xs">
+                                {{ strtoupper(substr($award->staff->staff_name ?? 'Unknown', 0, 2)) }}
+                            </div>
+                            <div class="flex-1">
+                                <a href="{{ route('admin.staff.show', $award->staff_id) }}"
+                                    class="text-sm font-semibold text-text-main hover:text-primary transition-colors">
+                                    {{ $award->staff->staff_name ?? 'Unknown Staff' }}
+                                </a>
+                                <div class="text-xs text-divider-subtle">
+                                    {{ $award->staff->staff_id ?? '' }} •
+                                    {{ $award->staff->faculty->faculty_name ?? 'No Faculty' }}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    @if($award->project)
+                    <div class="px-6 py-4">
+                        <div class="flex items-center gap-4">
+                            <div class="size-12 rounded-full bg-blue-50 flex items-center justify-center text-blue-600 font-bold text-xs">
+                                PR
+                            </div>
+                            <div class="flex-1">
+                                <a href="{{ route('admin.projects.show', $award->project_id) }}"
+                                    class="text-sm font-semibold text-text-main hover:text-primary transition-colors">
+                                    {{ $award->project->project_title }}
+                                </a>
+                                <div class="text-xs text-divider-subtle">
+                                    {{ $award->project->project_id }}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    @endif
+                </div>
             </div>
-            <div class="p-6">
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div>
-                        <p class="text-sm text-divider-subtle mb-1">Event Name</p>
-                        <p class="text-text-main font-medium">{{ $award->competition->event_name ?? 'Unknown Event' }}</p>
-                    </div>
-                    <div>
-                        <p class="text-sm text-divider-subtle mb-1">Organizer</p>
-                        <p class="text-text-main font-medium">{{ $award->competition->organizer ?? 'N/A' }}</p>
-                    </div>
-                    <div>
-                        <p class="text-sm text-divider-subtle mb-1">Exhibition Level</p>
-                        <p class="text-text-main font-medium">{{ $award->competition->exhibition_level ?? 'N/A' }}</p>
-                    </div>
-                    <div>
-                        <p class="text-sm text-divider-subtle mb-1">Exhibition Place</p>
-                        <p class="text-text-main font-medium">{{ $award->competition->exhibition_place ?? 'N/A' }}</p>
-                    </div>
-                    <div>
-                        <p class="text-sm text-divider-subtle mb-1">Event Date</p>
-                        <p class="text-text-main font-medium">
-                            {{ optional($award->competition->start_date)->format('M d, Y') ?? 'N/A' }}
-                            @if($award->competition->end_date && $award->competition->end_date != $award->competition->start_date)
-                                - {{ optional($award->competition->end_date)->format('M d, Y') ?? 'N/A' }}
-                            @endif
+
+            <!-- Evidence Document Section -->
+            @if($award->evidence_document)
+            <div class="bg-white border border-divider-subtle/30 rounded-xl overflow-hidden shadow-sm">
+                <div class="px-6 py-4 border-b border-divider-subtle/30 bg-background-light/50">
+                    <h3 class="text-lg font-bold text-text-main">Evidence Document</h3>
+                </div>
+                <div class="p-6">
+                    <div class="border-2 border-dashed border-divider-subtle/30 rounded-lg p-8 text-center">
+                        <span class="material-symbols-outlined text-5xl text-primary mb-3">description</span>
+                        <p class="text-text-main font-medium mb-2">Evidence Document Available</p>
+                        <a href="{{ asset('storage/' . $award->evidence_document) }}" target="_blank"
+                            class="inline-flex items-center gap-2 px-6 py-3 bg-primary text-white rounded-lg font-medium hover:bg-primary/90 transition-all">
+                            <span class="material-symbols-outlined text-xl">open_in_new</span>
+                            <span>View Document</span>
+                        </a>
+                        <p class="text-xs text-divider-subtle mt-3">
+                            Opens in new tab
                         </p>
                     </div>
                 </div>
             </div>
+            @endif
         </div>
 
-        <!-- Evidence Document -->
-        @if($award->evidence_document)
-        <div class="bg-white border border-divider-subtle/30 rounded-xl shadow-sm overflow-hidden">
-            <div class="px-6 py-4 border-b border-divider-subtle/30 bg-background-light">
-                <h3 class="text-lg font-bold text-text-main">Evidence Document</h3>
-            </div>
-            <div class="p-6">
-                <div class="border-2 border-dashed border-divider-subtle/30 rounded-lg p-8 text-center">
-                    <span class="material-symbols-outlined text-5xl text-primary mb-3">description</span>
-                    <p class="text-text-main font-medium mb-2">Evidence Document Available</p>
-                    <a href="{{ asset('storage/' . $award->evidence_document) }}" target="_blank"
-                        class="inline-flex items-center gap-2 px-6 py-3 bg-primary text-white rounded-lg font-medium hover:bg-primary/90 transition-all">
-                        <span class="material-symbols-outlined text-xl">open_in_new</span>
-                        <span>View Document</span>
-                    </a>
-                    <p class="text-xs text-divider-subtle mt-3">
-                        Opens in new tab
-                    </p>
+        <!-- Sidebar -->
+        <div class="lg:col-span-1 space-y-6">
+            <!-- Event Info Card -->
+            @if($award->competition)
+            <div class="bg-white border border-divider-subtle/30 rounded-xl p-6 shadow-sm">
+                <h3 class="text-lg font-bold text-text-main mb-4">Event Information</h3>
+                <div class="space-y-3 text-sm">
+                    <div>
+                        <div class="text-divider-subtle font-medium mb-1">Event Name</div>
+                        <div class="text-text-main font-semibold">{{ $award->competition->event_name }}</div>
+                    </div>
+                    <div>
+                        <div class="text-divider-subtle font-medium mb-1">Organizer</div>
+                        <div class="text-text-main font-semibold">{{ $award->competition->organizer ?? 'N/A' }}</div>
+                    </div>
+                    <div class="pt-3 border-t border-divider-subtle/30">
+                        <div class="text-divider-subtle font-medium mb-1">Location</div>
+                        <div class="text-text-main font-semibold">{{ $award->competition->exhibition_place ?? 'N/A' }}</div>
+                    </div>
+                    <div>
+                        <div class="text-divider-subtle font-medium mb-1">Level</div>
+                        <div class="text-text-main font-semibold">{{ $award->competition->exhibition_level ?? 'N/A' }}</div>
+                    </div>
                 </div>
             </div>
-        </div>
-        @endif
 
-        <!-- Metadata -->
-        <div class="bg-background-light/50 border border-divider-subtle/20 rounded-lg p-4">
-            <div class="flex flex-wrap gap-6 text-sm text-divider-subtle">
-                <div>
-                    <span class="font-medium">Created:</span> {{ optional($award->created_at)->format('M d, Y H:i') ?? 'N/A' }}
+            <!-- Event Dates Card -->
+            <div class="bg-white border border-divider-subtle/30 rounded-xl p-6 shadow-sm">
+                <h3 class="text-lg font-bold text-text-main mb-4">Event Dates</h3>
+                <div class="space-y-3 text-sm">
+                    <div class="flex items-center gap-3 p-3 bg-blue-50 rounded-lg">
+                        <span class="material-symbols-outlined text-lg text-blue-600">event</span>
+                        <div>
+                            <div class="text-divider-subtle font-medium mb-1">Start Date</div>
+                            <div class="text-text-main font-semibold">{{ $award->competition->start_date?->format('M d, Y') ?? 'TBD' }}
+                            </div>
+                        </div>
+                    </div>
+                    @if($award->competition->end_date && $award->competition->end_date != $award->competition->start_date)
+                    <div class="flex items-center gap-3 p-3 bg-green-50 rounded-lg">
+                        <span class="material-symbols-outlined text-lg text-green-600">event_available</span>
+                        <div>
+                            <div class="text-divider-subtle font-medium mb-1">End Date</div>
+                            <div class="text-text-main font-semibold">{{ $award->competition->end_date?->format('M d, Y') ?? 'TBD' }}
+                            </div>
+                        </div>
+                    </div>
+                    @endif
                 </div>
-                <div>
-                    <span class="font-medium">Last Updated:</span> {{ optional($award->updated_at)->format('M d, Y H:i') ?? 'N/A' }}
+            </div>
+            @endif
+
+            <!-- Metadata Card -->
+            <div class="bg-white border border-divider-subtle/30 rounded-xl p-6 shadow-sm">
+                <h3 class="text-lg font-bold text-text-main mb-4">Metadata</h3>
+                <div class="space-y-3 text-sm">
+                    <div>
+                        <div class="text-divider-subtle font-medium mb-1">Created</div>
+                        <div class="text-text-main font-semibold">{{ $award->created_at?->format('M d, Y') ?? 'N/A' }}</div>
+                    </div>
+                    <div>
+                        <div class="text-divider-subtle font-medium mb-1">Last Updated</div>
+                        <div class="text-text-main font-semibold">{{ $award->updated_at?->format('M d, Y') ?? 'N/A' }}</div>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
-</div>
+
 @endsection

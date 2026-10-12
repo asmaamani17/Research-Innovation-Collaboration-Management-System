@@ -15,8 +15,16 @@
     </div>
   @endif
   <header>
-    <h1 class="page-title">Tambah Rekod Baharu</h1>
-    <p class="page-description">Enter the program details and supporting evidence to add a new record.</p>
+    <div class="flex items-center justify-between gap-4 mb-2">
+      <div>
+        <h1 class="page-title">Tambah Rekod Baharu</h1>
+        <p class="page-description">Enter the program details and supporting evidence to add a new record.</p>
+      </div>
+      <a href="{{ route('admin.stem.programs.index') }}" class="flex min-w-[160px] cursor-pointer items-center justify-center gap-2 overflow-hidden rounded-lg h-12 px-6 bg-gray-200 text-gray-700 text-sm font-bold shadow-lg hover:bg-gray-300 transition-all">
+        <span class="material-symbols-outlined text-sm">arrow_back</span>
+        <span>Back to Programs</span>
+      </a>
+    </div>
   </header>
 
   <div class="card form-card">

@@ -13,62 +13,66 @@
     </header>
 
     <div class="space-y-6 px-4 pb-8 sm:px-8">
-        <form method="GET" action="{{ route('admin.ip.dashboard') }}" class="grid grid-cols-1 items-end gap-4 rounded-xl border border-divider-subtle/30 bg-white p-4 shadow-sm sm:grid-cols-2 xl:grid-cols-7 sm:p-5">
-            <div>
-                <label for="ip-category-filter" class="mb-2 block text-sm font-medium text-text-main">Category</label>
-                <select id="ip-category-filter" name="category" class="h-11 w-full rounded-lg border border-divider-subtle/40 bg-white px-3 text-sm text-text-main focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20">
-                    <option value="">All Categories</option>
-                    @foreach($categories as $category)
-                        <option value="{{ $category }}" @selected(request('category') === $category)>{{ str_replace('_', ' ', $category) }}</option>
-                    @endforeach
-                </select>
-            </div>
-            <div>
-                <label for="ip-year-filter" class="mb-2 block text-sm font-medium text-text-main">Year</label>
-                <select id="ip-year-filter" name="year" class="h-11 w-full rounded-lg border border-divider-subtle/40 bg-white px-3 text-sm text-text-main focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20">
-                    <option value="">All Years</option>
-                    @foreach($years as $year)
-                        <option value="{{ $year }}" @selected((string) request('year') === (string) $year)>{{ $year }}</option>
-                    @endforeach
-                </select>
-            </div>
-            <div>
-                <label for="ip-faculty-filter" class="mb-2 block text-sm font-medium text-text-main">Faculty</label>
-                <select id="ip-faculty-filter" name="faculty" class="h-11 w-full rounded-lg border border-divider-subtle/40 bg-white px-3 text-sm text-text-main focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20">
-                    <option value="">All Faculties</option>
-                    @foreach($faculties as $faculty)
-                        <option value="{{ $faculty['value'] }}" @selected(request('faculty') === $faculty['value'])>{{ $faculty['label'] }}</option>
-                    @endforeach
-                </select>
-            </div>
-            <div>
-                <label for="ip-type-filter" class="mb-2 block text-sm font-medium text-text-main">IP Type</label>
-                <select id="ip-type-filter" name="type" class="h-11 w-full rounded-lg border border-divider-subtle/40 bg-white px-3 text-sm text-text-main focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20">
-                    <option value="">All IP Types</option>
-                    @foreach($types as $type)
-                        <option value="{{ $type }}" @selected(request('type') === $type)>{{ str_replace('_', ' ', $type) }}</option>
-                    @endforeach
-                </select>
-            </div>
-            <div>
-                <label for="ip-status-filter" class="mb-2 block text-sm font-medium text-text-main">Status</label>
-                <select id="ip-status-filter" name="status" class="h-11 w-full rounded-lg border border-divider-subtle/40 bg-white px-3 text-sm text-text-main focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20">
-                    <option value="">All Statuses</option>
-                    @foreach($statuses as $status)
-                        <option value="{{ $status }}" @selected(request('status') === $status)>{{ $status }}</option>
-                    @endforeach
-                </select>
-            </div>
-            <div>
-                <label for="ip-search-filter" class="mb-2 block text-sm font-medium text-text-main">Search</label>
-                <input id="ip-search-filter" name="search" value="{{ request('search') }}" placeholder="Product, researcher, filing no."
-                    class="h-11 w-full rounded-lg border border-divider-subtle/40 bg-white px-3 text-sm text-text-main placeholder:text-divider-subtle focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20">
-            </div>
-            <div class="flex gap-2">
-                <button type="submit" class="h-11 flex-1 rounded-lg bg-primary px-4 text-sm font-bold text-white transition hover:bg-primary/90">Apply</button>
-                <a href="{{ route('admin.ip.dashboard') }}" class="inline-flex h-11 items-center justify-center rounded-lg border border-divider-subtle/40 bg-white px-4 text-sm font-bold text-text-main transition hover:bg-background-light">Reset</a>
-            </div>
-        </form>
+        <!-- Filter Bar -->
+        <div class="rounded-xl border border-divider-subtle/30 bg-white p-4 shadow-sm sm:p-6 mb-6">
+            <form method="GET" action="{{ route('admin.ip.dashboard') }}">
+                <div class="grid grid-cols-1 items-end gap-4 sm:grid-cols-[1fr_1fr_1fr_1fr_auto]">
+                    <div>
+                        <label class="block text-xs font-semibold text-text-main mb-1.5 uppercase tracking-wider">Category</label>
+                        <select name="category" onchange="this.form.submit()" class="w-full rounded-lg border border-divider-subtle/50 bg-white px-4 py-3 text-sm text-text-main outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20">
+                            <option value="">All Categories</option>
+                            @foreach($categories as $category)
+                                <option value="{{ $category }}" @selected(request('category') === $category)>{{ str_replace('_', ' ', $category) }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-text-main mb-1.5 uppercase tracking-wider">Year</label>
+                        <select name="year" onchange="this.form.submit()" class="w-full rounded-lg border border-divider-subtle/50 bg-white px-4 py-3 text-sm text-text-main outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20">
+                            <option value="">All Years</option>
+                            @foreach($years as $year)
+                                <option value="{{ $year }}" @selected((string) request('year') === (string) $year)>{{ $year }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-text-main mb-1.5 uppercase tracking-wider">Faculty</label>
+                        <select name="faculty" onchange="this.form.submit()" class="w-full rounded-lg border border-divider-subtle/50 bg-white px-4 py-3 text-sm text-text-main outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20">
+                            <option value="">All Faculties</option>
+                            @foreach($faculties as $faculty)
+                                <option value="{{ $faculty['value'] }}" @selected(request('faculty') === $faculty['value'])>{{ $faculty['label'] }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-text-main mb-1.5 uppercase tracking-wider">IP Type</label>
+                        <select name="type" onchange="this.form.submit()" class="w-full rounded-lg border border-divider-subtle/50 bg-white px-4 py-3 text-sm text-text-main outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20">
+                            <option value="">All IP Types</option>
+                            @foreach($types as $type)
+                                <option value="{{ $type }}" @selected(request('type') === $type)>{{ str_replace('_', ' ', $type) }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-text-main mb-1.5 uppercase tracking-wider">Status</label>
+                        <select name="status" onchange="this.form.submit()" class="w-full rounded-lg border border-divider-subtle/50 bg-white px-4 py-3 text-sm text-text-main outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20">
+                            <option value="">All Statuses</option>
+                            @foreach($statuses as $status)
+                                <option value="{{ $status }}" @selected(request('status') === $status)>{{ $status }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                    <!-- <div>
+                        <label class="block text-xs font-semibold text-text-main mb-1.5 uppercase tracking-wider">Search</label>
+                        <input name="search" value="{{ request('search') }}" placeholder="Product, researcher, filing no."
+                            class="w-full rounded-lg border border-divider-subtle/50 bg-white px-4 py-3 text-sm text-text-main placeholder:text-divider-subtle outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20">
+                    </div> -->
+                    <div>
+                        <a href="{{ route('admin.ip.dashboard') }}" class="inline-flex min-h-11 items-center justify-center rounded-lg border border-divider-subtle/50 bg-white px-5 py-3 text-sm font-bold text-text-main transition hover:bg-background-light">Reset</a>
+                    </div>
+                </div>
+            </form>
+        </div>
 
         <section class="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-5" aria-label="IP summary">
             @foreach([
@@ -163,7 +167,12 @@
                 type: 'bar',
                 data: {
                     labels: ipFaculties.map(item => item.faculty_code),
-                    datasets: [{ label: 'IP Records', data: ipFaculties.map(item => item.count), backgroundColor: '#184290', borderRadius: 6 }]
+                    datasets: [{ 
+                        label: 'IP Records', 
+                        data: ipFaculties.map(item => item.count), 
+                        backgroundColor: ipFaculties.map((_, index) => ipChartColors[index % ipChartColors.length]),
+                        borderRadius: 6 
+                    }]
                 },
                 options: { ...ipChartOptions, indexAxis: 'y', plugins: { legend: { display: false } }, scales: { x: { beginAtZero: true, ticks: { precision: 0 } } } }
             });

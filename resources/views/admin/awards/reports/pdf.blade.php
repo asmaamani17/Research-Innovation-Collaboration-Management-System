@@ -106,8 +106,8 @@
 </head>
 <body>
     <div class="header">
-        <h1>UNIVERSITI TEKNIKAL MALAYSIA MELAKA</h1>
-        <h2>Anugerah Penyelidikan Management System — Award Statistics & Report</h2>
+        <h1>RICE Research</h1>
+        <h2>Award Statistics & Report</h2>
     </div>
 
     <table class="meta-table">

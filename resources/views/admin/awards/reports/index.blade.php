@@ -28,7 +28,7 @@
             </div>
             <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div>
-                    <label class="block text-sm font-medium text-text-main mb-2">Year</label>
+                    <label class="block text-xs font-semibold text-text-main mb-1.5 uppercase tracking-wider">Year</label>
                     <select name="year" id="filterYear"
                         class="w-full h-11 px-4 bg-background-light border-none rounded-lg text-sm text-text-main focus:ring-2 focus:ring-primary">
                         <option value="">All Years</option>
@@ -40,7 +40,7 @@
                     </select>
                 </div>
                 <div>
-                    <label class="block text-sm font-medium text-text-main mb-2">Faculty</label>
+                    <label class="block text-xs font-semibold text-text-main mb-1.5 uppercase tracking-wider">Faculty</label>
                     <select name="faculty_id" id="filterFaculty"
                         class="w-full h-11 px-4 bg-background-light border-none rounded-lg text-sm text-text-main focus:ring-2 focus:ring-primary">
                         <option value="">All Faculties</option>
@@ -52,7 +52,7 @@
                     </select>
                 </div>
                 <div>
-                    <label class="block text-sm font-medium text-text-main mb-2">Award Level</label>
+                    <label class="block text-xs font-semibold text-text-main mb-1.5 uppercase tracking-wider">Award Level</label>
                     <select name="level" id="filterLevel"
                         class="w-full h-11 px-4 bg-background-light border-none rounded-lg text-sm text-text-main focus:ring-2 focus:ring-primary">
                         <option value="">All Levels</option>
