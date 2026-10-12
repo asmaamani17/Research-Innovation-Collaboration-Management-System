@@ -9,6 +9,8 @@ use Illuminate\Support\Facades\Storage;
 use Carbon\Carbon;
 
 use App\Models\Competition;
+use App\Models\ExhibitionResult;
+use App\Models\Product;
 
 class Award extends Model
 {
@@ -16,16 +18,17 @@ class Award extends Model
 
     protected $fillable = [
         'project_id',
-        'staff_id',
-        'event_id',
+        'product_id',
         'competition_id',
+        'staff_id',
         'award_name',
         'award_level',
+        'exhibition_result_id',
         'award_type',
+        'invention_award',
         'award_date',
         'amount',
         'evidence_document',
-        'evidence_link',
     ];
 
     protected $casts = [
@@ -58,9 +61,16 @@ class Award extends Model
     public function getLevelColorAttribute()
     {
         $colors = [
+            'GOLD' => '#FFD700',
             'Gold' => '#FFD700',
+            'SILVER' => '#C0C0C0',
             'Silver' => '#C0C0C0',
+            'BRONZE' => '#CD7F32',
             'Bronze' => '#CD7F32',
+            'PLATINUM' => '#E5E4E2',
+            'Platinum' => '#E5E4E2',
+            'SPECIAL' => '#9333EA',
+            'Special' => '#9333EA',
             'First Place' => '#28a745',
             'Second Place' => '#007bff',
             'Third Place' => '#343a40',
@@ -74,17 +84,12 @@ class Award extends Model
     }
 
     /**
-     * Resolve evidence URL from stored document or existing link.
+     * Resolve evidence URL from stored document.
      */
     public function getEvidenceUrlAttribute()
     {
         if ($this->evidence_document && Storage::disk('public')->exists($this->evidence_document)) {
             return Storage::url($this->evidence_document);
-        }
-
-        $originalLink = $this->getOriginal('evidence_link');
-        if ($originalLink) {
-            return $originalLink;
         }
 
         return null;
@@ -156,7 +161,7 @@ class Award extends Model
             'staff_name' => $this->staff->staff_name ?? 'Unknown Staff',
             'faculty_name' => $this->staff->faculty->faculty_name ?? 'Unknown Faculty',
             'project_title' => $this->project->project_title ?? 'Unknown Project',
-            'event_name' => $this->event->event_name ?? 'Unknown Event',
+            'event_name' => $this->competition->event_name ?? 'Unknown Event',
             'award_date' => $this->award_date ? Carbon::parse($this->award_date)->format('M d, Y') : null,
             'age' => $this->age,
             'status' => $this->status,
@@ -196,13 +201,13 @@ class Award extends Model
                 'total_awards' => $this->project->awards_count ?? 0,
             ],
             'event_info' => [
-                'id' => $this->event->id ?? null,
-                'name' => $this->event->event_name ?? 'Unknown',
-                'location' => $this->event->exhibition_place ?? 'Unknown',
-                'level' => $this->event->exhibition_level ?? 'Unknown',
-                'start_date' => $this->event->start_date?->format('M d, Y') ?? 'Unknown',
-                'end_date' => $this->event->end_date?->format('M d, Y') ?? 'Unknown',
-                'total_awards' => $this->event->awards_count ?? 0,
+                'id' => $this->competition->id ?? null,
+                'name' => $this->competition->event_name ?? 'Unknown',
+                'location' => $this->competition->exhibition_place ?? 'Unknown',
+                'level' => $this->competition->exhibition_level ?? 'Unknown',
+                'start_date' => $this->competition->start_date?->format('M d, Y') ?? 'Unknown',
+                'end_date' => $this->competition->end_date?->format('M d, Y') ?? 'Unknown',
+                'total_awards' => $this->competition->awards_count ?? 0,
             ],
         ];
     }
@@ -224,11 +229,35 @@ class Award extends Model
     }
 
     /**
+     * Get the product for the award.
+     */
+    public function product()
+    {
+        return $this->belongsTo(Product::class);
+    }
+
+    /**
      * Get the event (competition) where the award was given.
      */
     public function event()
     {
         return $this->belongsTo(Competition::class, 'competition_id');
+    }
+
+    /**
+     * Get the competition (alias for event).
+     */
+    public function competition()
+    {
+        return $this->belongsTo(Competition::class, 'competition_id');
+    }
+
+    /**
+     * Get the exhibition result for the award.
+     */
+    public function exhibitionResult()
+    {
+        return $this->belongsTo(ExhibitionResult::class, 'exhibition_result_id', 'ExhibitionResultID');
     }
 
     public function getEventIdAttribute()
@@ -312,7 +341,7 @@ class Award extends Model
      */
     public function scopeWithRelations($query)
     {
-        return $query->with(['staff.faculty', 'project', 'event']);
+        return $query->with(['staff.faculty', 'project', 'competition', 'exhibitionResult']);
     }
 
     /**
@@ -320,7 +349,7 @@ class Award extends Model
      */
     public static function withAllRelations()
     {
-        return self::with(['staff.faculty', 'project', 'event']);
+        return self::with(['staff.faculty', 'project', 'competition', 'exhibitionResult']);
     }
 
     /**

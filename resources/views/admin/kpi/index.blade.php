@@ -19,11 +19,6 @@
                 <option value="{{ $year }}" {{ $year == $currentYear ? 'selected' : '' }}>{{ $year }}</option>
             @endforeach
         </select>
-        <a href="{{ route('admin.kpi.edit') }}"
-            class="flex min-w-[120px] cursor-pointer items-center justify-center gap-2 overflow-hidden rounded-lg h-12 px-6 bg-primary text-white text-sm font-bold shadow-lg hover:bg-primary/90 transition-all">
-            <span class="material-symbols-outlined text-sm">edit</span>
-            <span>Edit</span>
-        </a>
     </div>
 </header>
 

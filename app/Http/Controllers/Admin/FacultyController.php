@@ -97,17 +97,17 @@ class FacultyController extends Controller
                 $query->withCount('awards')->orderBy('staff_name');
             },
             'awards' => function($query) {
-                $query->with(['staff', 'project', 'event'])->orderBy('created_at', 'desc');
+                $query->with(['staff', 'project', 'competition', 'exhibitionResult'])->orderBy('created_at', 'desc');
             }
         ])->findOrFail($id);
 
-        // Calculate faculty statistics
+        // Calculate faculty statistics (case-insensitive matching)
         $stats = [
             'total_staff' => $faculty->staff->count(),
             'total_awards' => $faculty->awards->count(),
-            'gold_awards' => $faculty->awards->where('award_level', 'Gold')->count(),
-            'silver_awards' => $faculty->awards->where('award_level', 'Silver')->count(),
-            'bronze_awards' => $faculty->awards->where('award_level', 'Bronze')->count(),
+            'gold_awards' => $faculty->awards->filter(fn($a) => strtoupper($a->award_level) === 'GOLD')->count(),
+            'silver_awards' => $faculty->awards->filter(fn($a) => strtoupper($a->award_level) === 'SILVER')->count(),
+            'bronze_awards' => $faculty->awards->filter(fn($a) => strtoupper($a->award_level) === 'BRONZE')->count(),
             'staff_with_awards' => $faculty->staff->where('awards_count', '>', 0)->count(),
         ];
 
@@ -159,7 +159,7 @@ class FacultyController extends Controller
     {
         $faculty = Faculty::findOrFail($id);
         $awards = $faculty->awards()
-            ->with(['staff', 'project', 'event'])
+            ->with(['staff', 'project', 'competition', 'exhibitionResult'])
             ->orderBy('created_at', 'desc')
             ->paginate(15);
 

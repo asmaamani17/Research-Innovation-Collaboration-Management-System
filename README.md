@@ -9,7 +9,7 @@
 
 ## RICM Products / TRL workspace
 
-Products Management uses the RICM database table `trl_products` for TRL records. The legacy `products` table remains in place because RICM awards reference it. TRL records are managed locally; this workspace does not connect to Google Sheets.
+Products Management uses the RICM database table `trl_products` for TRL records. The former `products` table is retained as `legacy_products_archive` so existing award product references remain intact; new TRL records do not use it. TRL records are managed locally; this workspace does not connect to Google Sheets.
 
 To create the TRL table and import the supplied source records:
 
@@ -19,6 +19,18 @@ php artisan db:seed --class=TrlProductsSeeder
 ```
 
 The seed contains the 731 TRL records supplied with `dashboard-trl`. It can be run again safely because the records have unique UUIDs and duplicate inserts are ignored. Super Admins can manage records under **Products Management**, filter by TRL/status/faculty, import `.xlsx`, `.xls`, or `.csv` files using the displayed headers, and export filtered results to Excel.
+
+## RICM IP Management
+
+IP Management uses `ip_records`, aligned with the newer `dashboard-ip` schema and extended with compatibility fields required by RICM screens. Existing `intellectual_properties` rows are copied into the new table and the old table is renamed `legacy_intellectual_properties_archive`; staff links are migrated to `ip_records`. The IP dashboard, filtering, record management, renewal tracking, reports, and Excel/CSV import and export use `ip_records`; IP pages do not connect to Google Sheets.
+
+Apply the IP metadata migration with:
+
+```bash
+php artisan migrate
+```
+
+The migration keeps the previous IP and product tables as archives rather than dropping them. IP data from the 432-row dashboard export is not included in this repository yet; import it after supplying the export file through the IP import page.
 
 ## About Laravel
 

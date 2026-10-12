@@ -128,6 +128,21 @@
                                 <p class="mt-1 text-xs text-red-500">{{ $message }}</p>
                             @enderror
                         </div>
+
+                        <div>
+                            <label class="block text-sm font-medium text-text-main mb-2">
+                                Invention Award
+                            </label>
+                            <select name="invention_award"
+                                class="w-full px-4 py-3 border border-divider-subtle/30 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all">
+                                <option value="">Select</option>
+                                <option value="1">Ya (Yes)</option>
+                                <option value="2">Tidak (No)</option>
+                            </select>
+                            @error('invention_award')
+                                <p class="mt-1 text-xs text-red-500">{{ $message }}</p>
+                            @enderror
+                        </div>
                     </div>
                 </div>
 

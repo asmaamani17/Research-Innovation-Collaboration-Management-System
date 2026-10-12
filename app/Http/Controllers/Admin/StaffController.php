@@ -100,17 +100,20 @@ class StaffController extends Controller
      */
     public function show($id)
     {
-        $staff = Staff::with(['faculty', 'awards.project', 'awards.event'])->findOrFail($id);
-        
-        // Get award statistics for this staff
+        $staff = Staff::with(['faculty', 'awards.project', 'awards.competition', 'awards.exhibitionResult'])->findOrFail($id);
+
+        // Get award statistics for this staff (case-insensitive matching)
         $award_stats = [
             'total' => $staff->awards->count(),
-            'gold' => $staff->awards->where('award_level', 'Gold')->count(),
-            'silver' => $staff->awards->where('award_level', 'Silver')->count(),
-            'bronze' => $staff->awards->where('award_level', 'Bronze')->count(),
+            'gold' => $staff->awards->filter(fn($a) => strtoupper($a->award_level) === 'GOLD')->count(),
+            'silver' => $staff->awards->filter(fn($a) => strtoupper($a->award_level) === 'SILVER')->count(),
+            'bronze' => $staff->awards->filter(fn($a) => strtoupper($a->award_level) === 'BRONZE')->count(),
         ];
 
-        return view('admin.awards.staff-show', compact('staff', 'award_stats'));
+        // Get faculties for dropdown
+        $faculties = Faculty::orderBy('faculty_name')->get();
+
+        return view('admin.awards.staff-show', compact('staff', 'award_stats', 'faculties'));
     }
 
     /**

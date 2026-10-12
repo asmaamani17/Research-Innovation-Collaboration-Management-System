@@ -1,203 +1,161 @@
 @extends('layouts.admin')
 
-@section('title', 'Intellectual Properties Management')
+@section('title', 'IP Records')
 
 @section('content')
-    <header class="px-8 py-8 flex flex-wrap items-center justify-between gap-4">
-        <div class="flex flex-col">
-            <h2 class="text-text-main text-3xl font-black leading-tight tracking-tight">Intellectual Properties</h2>
-            <p class="text-divider-subtle font-medium text-sm mt-1">
-                Manage patents, copyrights, trademarks, and other intellectual properties.
-            </p>
+    <header class="flex flex-wrap items-center justify-between gap-4 px-4 py-6 sm:px-8 sm:py-8">
+        <div>
+            <h1 class="text-2xl font-black leading-tight tracking-tight text-text-main sm:text-3xl">IP Records</h1>
+            <p class="mt-1 text-sm font-medium text-divider-subtle">Search, filter, import, and manage intellectual property records stored in RICM.</p>
         </div>
-        <div class="flex gap-2">
-            <a href="{{ route('admin.ip.export', request()->query()) }}"
-                class="flex min-w-[120px] cursor-pointer items-center justify-center gap-2 overflow-hidden rounded-lg h-12 px-6 bg-gray-200 text-gray-700 text-sm font-bold shadow-lg hover:bg-gray-300 transition-all">
-                <span class="material-symbols-outlined text-sm">download</span>
-                <span>Export</span>
+        <div class="flex flex-wrap gap-2">
+            <a href="{{ route('admin.ip.export', request()->query()) }}" class="inline-flex h-11 items-center gap-2 rounded-lg border border-divider-subtle/40 bg-white px-4 text-sm font-bold text-text-main transition hover:bg-background-light">
+                <span class="material-symbols-outlined text-lg" aria-hidden="true">download</span> Export Excel
             </a>
-            <a href="{{ route('admin.ip.create') }}"
-                class="flex min-w-[160px] cursor-pointer items-center justify-center gap-2 overflow-hidden rounded-lg h-12 px-6 bg-primary text-white text-sm font-bold shadow-lg hover:bg-primary/90 transition-all">
-                <span class="material-symbols-outlined text-sm">add</span>
-                <span>Add IP</span>
+            <a href="{{ route('admin.ip.create') }}" class="inline-flex h-11 items-center gap-2 rounded-lg bg-primary px-4 text-sm font-bold text-white shadow-sm transition hover:bg-primary/90">
+                <span class="material-symbols-outlined text-lg" aria-hidden="true">add</span> Add IP
             </a>
         </div>
     </header>
 
-    <div class="px-8 space-y-4">
+    <div class="space-y-4 px-4 pb-8 sm:px-8">
         @if(session('success'))
-            <div class="rounded-lg border border-green-200 bg-green-50 px-4 py-3 text-sm font-medium text-green-700">
-                {{ session('success') }}
-            </div>
+            <div class="rounded-lg border border-green-200 bg-green-50 px-4 py-3 text-sm font-medium text-green-700" role="status">{{ session('success') }}</div>
         @endif
-
-        @if(session('error'))
-            <div class="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm font-medium text-red-700">
-                {{ session('error') }}
-            </div>
-        @endif
-
         @if($errors->any())
-            <div class="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
-                <p class="font-bold mb-1">Please fix these fields:</p>
-                <ul class="list-disc pl-5">
-                    @foreach($errors->all() as $error)
-                        <li>{{ $error }}</li>
+            <div class="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700" role="alert">
+                <p class="mb-1 font-bold">Please review the following:</p>
+                <ul class="list-disc space-y-1 pl-5">@foreach($errors->all() as $error)<li>{{ $error }}</li>@endforeach</ul>
+            </div>
+        @endif
+
+        <form method="GET" action="{{ route('admin.ip.index') }}" class="grid grid-cols-1 items-end gap-3 rounded-xl border border-divider-subtle/30 bg-white p-4 shadow-sm sm:grid-cols-2 xl:grid-cols-8">
+            <div class="xl:col-span-2">
+                <label for="ip-record-search" class="mb-2 block text-sm font-medium text-text-main">Search records</label>
+                <input id="ip-record-search" name="search" value="{{ request('search') }}" placeholder="Product, researcher, filing no."
+                    class="h-11 w-full rounded-lg border border-divider-subtle/40 bg-white px-3 text-sm text-text-main placeholder:text-divider-subtle focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20">
+            </div>
+            <div>
+                <label for="ip-record-category" class="mb-2 block text-sm font-medium text-text-main">Category</label>
+                <select id="ip-record-category" name="category" class="h-11 w-full rounded-lg border border-divider-subtle/40 bg-white px-3 text-sm text-text-main focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20">
+                    <option value="">All Categories</option>
+                    @foreach($categories as $category)
+                        <option value="{{ $category }}" @selected(request('category') === $category)>{{ str_replace('_', ' ', $category) }}</option>
                     @endforeach
-                </ul>
+                </select>
             </div>
-        @endif
-    </div>
-
-    <div class="px-8 my-4">
-        <form method="GET" action="{{ route('admin.ip.index') }}"
-            class="bg-white border border-divider-subtle/30 rounded-xl p-2 flex flex-wrap items-center gap-4">
-            <div class="flex-1 min-w-[260px] relative">
-                <div class="absolute inset-y-0 left-0 flex items-center pl-4 pointer-events-none text-divider-subtle">
-                    <span class="material-symbols-outlined">search</span>
-                </div>
-                <input name="search" value="{{ request('search') }}"
-                    class="w-full h-11 pl-12 pr-4 bg-background-light border-none rounded-lg focus:ring-2 focus:ring-primary text-sm text-text-main placeholder:text-divider-subtle"
-                    placeholder="Search by title, IP number, staff, project..." />
+            <div>
+                <label for="ip-record-type" class="mb-2 block text-sm font-medium text-text-main">IP Type</label>
+                <select id="ip-record-type" name="type" class="h-11 w-full rounded-lg border border-divider-subtle/40 bg-white px-3 text-sm text-text-main focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20">
+                    <option value="">All IP Types</option>
+                    @foreach($types as $type)
+                        <option value="{{ $type }}" @selected(request('type') === $type)>{{ str_replace('_', ' ', $type) }}</option>
+                    @endforeach
+                </select>
             </div>
-
-            <select name="year"
-                class="h-11 px-4 bg-background-light border-none rounded-lg text-sm text-text-main focus:ring-2 focus:ring-primary">
-                <option value="">All Years</option>
-                @foreach($availableYears as $year)
-                    <option value="{{ $year }}" @selected((string) request('year') === (string) $year)>{{ $year }}</option>
-                @endforeach
-            </select>
-
-            <select name="faculty_id"
-                class="h-11 px-4 bg-background-light border-none rounded-lg text-sm text-text-main focus:ring-2 focus:ring-primary">
-                <option value="">All Faculties</option>
-                @foreach($faculties as $faculty)
-                    <option value="{{ $faculty->id }}" @selected((string) request('faculty_id') === (string) $faculty->id)>
-                        {{ $faculty->faculty_code }} - {{ $faculty->faculty_name }}
-                    </option>
-                @endforeach
-            </select>
-
-            <select name="type"
-                class="h-11 px-4 bg-background-light border-none rounded-lg text-sm text-text-main focus:ring-2 focus:ring-primary">
-                <option value="">All Types</option>
-                @foreach($ipTypes as $type)
-                    <option value="{{ $type }}" @selected(request('type') === $type)>{{ $type }}</option>
-                @endforeach
-            </select>
-
-            <select name="status"
-                class="h-11 px-4 bg-background-light border-none rounded-lg text-sm text-text-main focus:ring-2 focus:ring-primary">
-                <option value="">All Statuses</option>
-                @foreach($ipStatuses as $status)
-                    <option value="{{ $status }}" @selected(request('status') === $status)>{{ $status }}</option>
-                @endforeach
-            </select>
-
-            <button type="submit"
-                class="h-11 px-6 bg-primary text-white text-sm font-bold rounded-lg hover:bg-primary/90 transition-all">
-                Search
-            </button>
-
-            <a href="{{ route('admin.ip.index') }}"
-                class="h-11 px-6 bg-background-light text-text-main text-sm font-bold rounded-lg hover:bg-background-light/80 transition-all">
-                Clear
-            </a>
+            <div>
+                <label for="ip-record-year" class="mb-2 block text-sm font-medium text-text-main">Year</label>
+                <select id="ip-record-year" name="year" class="h-11 w-full rounded-lg border border-divider-subtle/40 bg-white px-3 text-sm text-text-main focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20">
+                    <option value="">All Years</option>
+                    @foreach($years as $year)
+                        <option value="{{ $year }}" @selected((string) request('year') === (string) $year)>{{ $year }}</option>
+                    @endforeach
+                </select>
+            </div>
+            <div>
+                <label for="ip-record-faculty" class="mb-2 block text-sm font-medium text-text-main">Faculty</label>
+                <select id="ip-record-faculty" name="faculty" class="h-11 w-full rounded-lg border border-divider-subtle/40 bg-white px-3 text-sm text-text-main focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20">
+                    <option value="">All Faculties</option>
+                    @foreach($faculties as $faculty)
+                        <option value="{{ $faculty['value'] }}" @selected(request('faculty') === $faculty['value'])>{{ $faculty['label'] }}</option>
+                    @endforeach
+                </select>
+            </div>
+            <div>
+                <label for="ip-record-status" class="mb-2 block text-sm font-medium text-text-main">Status</label>
+                <select id="ip-record-status" name="status" class="h-11 w-full rounded-lg border border-divider-subtle/40 bg-white px-3 text-sm text-text-main focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20">
+                    <option value="">All Statuses</option>
+                    @foreach($statuses as $status)
+                        <option value="{{ $status }}" @selected(request('status') === $status)>{{ $status }}</option>
+                    @endforeach
+                </select>
+            </div>
+            <div class="flex gap-2">
+                <button type="submit" class="h-11 flex-1 rounded-lg bg-primary px-4 text-sm font-bold text-white transition hover:bg-primary/90">Apply</button>
+                <a href="{{ route('admin.ip.index') }}" class="inline-flex h-11 items-center justify-center rounded-lg border border-divider-subtle/40 bg-white px-4 text-sm font-bold text-text-main transition hover:bg-background-light">Reset</a>
+            </div>
         </form>
-    </div>
 
-    <div class="px-8 pb-8">
-        <div class="bg-white border border-divider-subtle/30 rounded-xl overflow-hidden">
-            <table class="w-full">
-                <thead class="bg-background-light">
-                    <tr>
-                        <th class="px-6 py-4 text-left text-xs font-bold text-text-main uppercase tracking-wider">IP Number</th>
-                        <th class="px-6 py-4 text-left text-xs font-bold text-text-main uppercase tracking-wider">Title</th>
-                        <th class="px-6 py-4 text-left text-xs font-bold text-text-main uppercase tracking-wider">Type</th>
-                        <th class="px-6 py-4 text-left text-xs font-bold text-text-main uppercase tracking-wider">Status</th>
-                        <th class="px-6 py-4 text-left text-xs font-bold text-text-main uppercase tracking-wider">Staff</th>
-                        <th class="px-6 py-4 text-left text-xs font-bold text-text-main uppercase tracking-wider">Filing Date</th>
-                        <th class="px-6 py-4 text-left text-xs font-bold text-text-main uppercase tracking-wider">Country</th>
-                        <th class="px-6 py-4 text-right text-xs font-bold text-text-main uppercase tracking-wider">Actions</th>
-                    </tr>
-                </thead>
-                <tbody class="divide-y divide-divider-subtle/20">
-                    @forelse($ips as $ip)
-                        <tr class="hover:bg-background-light/50 transition-colors">
-                            <td class="px-6 py-4 whitespace-nowrap">
-                                <span class="text-sm font-medium text-text-main">{{ $ip->ip_number ?? '-' }}</span>
-                            </td>
-                            <td class="px-6 py-4">
-                                <span class="text-sm text-text-main">{{ Str::limit($ip->title, 50) }}</span>
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap">
-                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-primary/10 text-primary">
-                                    {{ $ip->type }}
-                                </span>
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap">
-                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
-                                    @if($ip->status === 'GRANTED') bg-green-100 text-green-700
-                                    @elseif($ip->status === 'FILED') bg-yellow-100 text-yellow-700
-                                    @elseif($ip->status === 'REGISTERED') bg-blue-100 text-blue-700
-                                    @else bg-gray-100 text-gray-700
-                                    @endif">
-                                    {{ $ip->status ?? 'N/A' }}
-                                </span>
-                            </td>
-                            <td class="px-6 py-4">
-                                <span class="text-sm text-text-main">{{ $ip->staff->pluck('staff_name')->join(', ') ?? '-' }}</span>
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap">
-                                <span class="text-sm text-text-main">{{ $ip->filing_date ? $ip->filing_date->format('d M Y') : '-' }}</span>
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap">
-                                <span class="text-sm text-text-main">{{ $ip->country ?? '-' }}</span>
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap text-right">
-                                <div class="flex items-center justify-end gap-2">
-                                    <a href="{{ route('admin.ip.show', $ip->id) }}"
-                                        class="p-2 text-primary hover:bg-primary/10 rounded-lg transition-colors">
-                                        <span class="material-symbols-outlined text-sm">visibility</span>
-                                    </a>
-                                    <a href="{{ route('admin.ip.edit', $ip->id) }}"
-                                        class="p-2 text-primary hover:bg-primary/10 rounded-lg transition-colors">
-                                        <span class="material-symbols-outlined text-sm">edit</span>
-                                    </a>
-                                    <form action="{{ route('admin.ip.destroy', $ip->id) }}" method="POST"
-                                        onsubmit="return confirm('Are you sure you want to delete this IP?');">
-                                        @csrf
-                                        @method('DELETE')
-                                        <button type="submit"
-                                            class="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors">
-                                            <span class="material-symbols-outlined text-sm">delete</span>
-                                        </button>
-                                    </form>
-                                </div>
-                            </td>
-                        </tr>
-                    @empty
-                        <tr>
-                            <td colspan="8" class="px-6 py-12 text-center">
-                                <div class="flex flex-col items-center">
-                                    <span class="material-symbols-outlined text-4xl text-divider-subtle mb-2">inventory_2</span>
-                                    <p class="text-sm text-divider-subtle">No intellectual properties found</p>
-                                </div>
-                            </td>
-                        </tr>
-                    @endforelse
-                </tbody>
-            </table>
-        </div>
-
-        @if($ips->hasPages())
-            <div class="mt-4 flex items-center justify-between">
-                <div class="text-sm text-divider-subtle">
-                    Showing {{ $ips->firstItem() }} to {{ $ips->lastItem() }} of {{ $ips->total() }} results
-                </div>
-                {{ $ips->links() }}
+        <section class="overflow-hidden rounded-xl border border-divider-subtle/30 bg-white shadow-sm" aria-label="IP records table">
+            <div class="flex flex-wrap items-center justify-between gap-2 border-b border-divider-subtle/20 px-5 py-4">
+                <h2 class="text-lg font-bold text-text-main">Intellectual Property</h2>
+                <p class="text-sm text-divider-subtle">{{ number_format($ips->total()) }} matching record(s)</p>
             </div>
-        @endif
+            <div class="overflow-x-auto">
+                <table class="min-w-full divide-y divide-divider-subtle/20">
+                    <thead class="bg-background-light">
+                        <tr>
+                            @foreach(['Category', 'Product', 'Year', 'Faculty', 'Researcher(s)', 'Filing Number', 'Status / Gazette', 'Cost (RM)', 'Actions'] as $heading)
+                                <th class="whitespace-nowrap px-4 py-3 text-left text-xs font-bold uppercase tracking-wider text-text-main">{{ $heading }}</th>
+                            @endforeach
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-divider-subtle/20">
+                        @forelse($ips as $ip)
+                            <tr class="transition-colors hover:bg-background-light/50">
+                                <td class="whitespace-nowrap px-4 py-4">
+                                    <span class="inline-flex rounded-full bg-primary/10 px-2.5 py-1 text-xs font-semibold text-primary">{{ str_replace('_', ' ', $ip->category ?: $ip->type) }}</span>
+                                </td>
+                                <td class="min-w-64 px-4 py-4">
+                                    <a href="{{ route('admin.ip.show', $ip->id) }}" class="text-sm font-semibold text-text-main hover:text-primary">{{ $ip->nama_produk_baru ?: $ip->title }}</a>
+                                    <p class="mt-1 text-xs text-divider-subtle">{{ $ip->type }}</p>
+                                </td>
+                                <td class="whitespace-nowrap px-4 py-4 text-sm text-text-main">{{ $ip->tahun ?: optional($ip->filing_date)->year ?: '-' }}</td>
+                                <td class="whitespace-nowrap px-4 py-4 text-sm text-text-main">{{ $ip->fakulti ?: $ip->staff->map(fn ($staff) => $staff->faculty?->faculty_code)->filter()->unique()->join(', ') ?: '-' }}</td>
+                                <td class="min-w-48 px-4 py-4 text-sm text-text-main">
+                                    {{ $ip->nama_penyelidik ?: $ip->staff->pluck('staff_name')->join(', ') ?: '-' }}
+                                    @if($ip->penyelidik_bersama)
+                                        <p class="mt-1 text-xs text-divider-subtle">With: {{ Str::limit($ip->penyelidik_bersama, 50) }}</p>
+                                    @endif
+                                </td>
+                                <td class="whitespace-nowrap px-4 py-4 text-sm text-text-main">{{ $ip->ip_number ?: '-' }}</td>
+                                <td class="whitespace-nowrap px-4 py-4">
+                                    <span class="inline-flex rounded-full px-2.5 py-1 text-xs font-semibold {{ in_array(strtoupper((string) $ip->status), ['REGISTERED', 'GRANTED']) ? 'bg-green-100 text-green-700' : (in_array(strtoupper((string) $ip->status), ['FILED', 'PENDING']) ? 'bg-amber-100 text-amber-700' : 'bg-gray-100 text-gray-700') }}">
+                                        {{ $ip->status ?: 'Not Set' }}
+                                    </span>
+                                    @if($ip->pewartaan)
+                                        <p class="mt-1 text-xs text-divider-subtle">{{ $ip->pewartaan }}</p>
+                                    @endif
+                                </td>
+                                <td class="whitespace-nowrap px-4 py-4 text-sm text-text-main">{{ $ip->kos !== null ? number_format((float) $ip->kos, 2) : '-' }}</td>
+                                <td class="whitespace-nowrap px-4 py-4">
+                                    <div class="flex items-center gap-1">
+                                        <a href="{{ route('admin.ip.show', $ip->id) }}" aria-label="View record" class="rounded-lg p-2 text-primary transition hover:bg-primary/10"><span class="material-symbols-outlined text-lg">visibility</span></a>
+                                        <a href="{{ route('admin.ip.edit', $ip->id) }}" aria-label="Edit record" class="rounded-lg p-2 text-primary transition hover:bg-primary/10"><span class="material-symbols-outlined text-lg">edit</span></a>
+                                        <form action="{{ route('admin.ip.destroy', $ip->id) }}" method="POST" onsubmit="return confirm('Delete this IP record?')">
+                                            @csrf
+                                            @method('DELETE')
+                                            <button type="submit" aria-label="Delete record" class="rounded-lg p-2 text-red-600 transition hover:bg-red-50"><span class="material-symbols-outlined text-lg">delete</span></button>
+                                        </form>
+                                    </div>
+                                </td>
+                            </tr>
+                        @empty
+                            <tr><td colspan="9" class="px-4 py-14 text-center">
+                                <span class="material-symbols-outlined text-4xl text-divider-subtle" aria-hidden="true">inventory_2</span>
+                                <p class="mt-2 text-sm font-medium text-text-main">No intellectual property records found.</p>
+                                <p class="mt-1 text-sm text-divider-subtle">Try changing your filters or add a new record.</p>
+                            </td></tr>
+                        @endforelse
+                    </tbody>
+                </table>
+            </div>
+            @if($ips->hasPages())
+                <div class="flex flex-wrap items-center justify-between gap-3 border-t border-divider-subtle/20 px-5 py-4">
+                    <p class="text-sm text-divider-subtle">Showing {{ $ips->firstItem() }}–{{ $ips->lastItem() }} of {{ $ips->total() }} records</p>
+                    {{ $ips->links() }}
+                </div>
+            @endif
+        </section>
     </div>
 @endsection

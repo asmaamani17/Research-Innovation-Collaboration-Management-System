@@ -1,160 +1,106 @@
 @extends('layouts.admin')
 
-@section('title', 'Intellectual Property Details')
+@section('title', 'IP Record Details')
 
 @section('content')
-<!-- Page Header -->
-<header class="px-8 py-8 flex flex-wrap items-center justify-between gap-4">
-    <div class="flex flex-col">
-        <h2 class="text-text-main text-3xl font-black leading-tight tracking-tight">
-            Intellectual Property Details
-        </h2>
-        <p class="text-divider-subtle font-medium text-sm mt-1">
-            View detailed information about this intellectual property.
-        </p>
-    </div>
-    <div class="flex gap-2">
-        <a href="{{ route('admin.ip.edit', $ip->id) }}"
-            class="flex min-w-[120px] cursor-pointer items-center justify-center gap-2 overflow-hidden rounded-lg h-12 px-6 bg-primary text-white text-sm font-bold shadow-lg hover:bg-primary/90 transition-all">
-            <span class="material-symbols-outlined text-sm">edit</span>
-            <span>Edit</span>
-        </a>
-        <a href="{{ route('admin.ip.index') }}"
-            class="flex min-w-[120px] cursor-pointer items-center justify-center gap-2 overflow-hidden rounded-lg h-12 px-6 bg-gray-200 text-gray-700 text-sm font-bold shadow-lg hover:bg-gray-300 transition-all">
-            <span class="material-symbols-outlined text-sm">arrow_back</span>
-            <span>Back</span>
-        </a>
-    </div>
-</header>
-
-<div class="px-8 pb-8">
-    <!-- Main Content -->
-    <div class="max-w-5xl mx-auto space-y-6">
-        <!-- Basic Information Card -->
-        <div class="bg-white border border-divider-subtle/30 rounded-xl shadow-sm overflow-hidden">
-            <div class="px-6 py-4 border-b border-divider-subtle/30 bg-background-light">
-                <h3 class="text-lg font-bold text-text-main">Basic Information</h3>
-            </div>
-            <div class="p-6 grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div>
-                    <label class="block text-sm font-medium text-divider-subtle mb-1">IP Number</label>
-                    <p class="text-text-main font-medium">{{ $ip->ip_number ?? '-' }}</p>
-                </div>
-                <div>
-                    <label class="block text-sm font-medium text-divider-subtle mb-1">Title</label>
-                    <p class="text-text-main font-medium">{{ $ip->title }}</p>
-                </div>
-                <div>
-                    <label class="block text-sm font-medium text-divider-subtle mb-1">Type</label>
-                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-primary/10 text-primary">
-                        {{ $ip->type }}
-                    </span>
-                </div>
-                <div>
-                    <label class="block text-sm font-medium text-divider-subtle mb-1">Status</label>
-                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
-                        @if($ip->status === 'GRANTED') bg-green-100 text-green-700
-                        @elseif($ip->status === 'FILED') bg-yellow-100 text-yellow-700
-                        @elseif($ip->status === 'REGISTERED') bg-blue-100 text-blue-700
-                        @elseif($ip->status === 'PENDING') bg-orange-100 text-orange-700
-                        @elseif($ip->status === 'REJECTED') bg-red-100 text-red-700
-                        @elseif($ip->status === 'EXPIRED') bg-gray-100 text-gray-700
-                        @else bg-gray-100 text-gray-700
-                        @endif">
-                        {{ $ip->status ?? 'N/A' }}
-                    </span>
-                </div>
-            </div>
+    <header class="flex flex-wrap items-center justify-between gap-4 px-4 py-6 sm:px-8 sm:py-8">
+        <div>
+            <h1 class="text-2xl font-black leading-tight tracking-tight text-text-main sm:text-3xl">IP Record Details</h1>
+            <p class="mt-1 text-sm font-medium text-divider-subtle">{{ $ip->nama_produk_baru ?: $ip->title }}</p>
         </div>
-
-        <!-- Important Dates Card -->
-        <div class="bg-white border border-divider-subtle/30 rounded-xl shadow-sm overflow-hidden">
-            <div class="px-6 py-4 border-b border-divider-subtle/30 bg-background-light">
-                <h3 class="text-lg font-bold text-text-main">Important Dates</h3>
-            </div>
-            <div class="p-6 grid grid-cols-1 md:grid-cols-3 gap-6">
-                <div>
-                    <label class="block text-sm font-medium text-divider-subtle mb-1">Filing Date</label>
-                    <p class="text-text-main font-medium">{{ $ip->filing_date ? $ip->filing_date->format('d M Y') : '-' }}</p>
-                </div>
-                <div>
-                    <label class="block text-sm font-medium text-divider-subtle mb-1">Grant Date</label>
-                    <p class="text-text-main font-medium">{{ $ip->grant_date ? $ip->grant_date->format('d M Y') : '-' }}</p>
-                </div>
-                <div>
-                    <label class="block text-sm font-medium text-divider-subtle mb-1">Expiry Date</label>
-                    <p class="text-text-main font-medium">{{ $ip->expiry_date ? $ip->expiry_date->format('d M Y') : '-' }}</p>
-                </div>
-            </div>
+        <div class="flex flex-wrap gap-2">
+            <a href="{{ route('admin.ip.edit', $ip->id) }}" class="inline-flex h-11 items-center gap-2 rounded-lg bg-primary px-4 text-sm font-bold text-white transition hover:bg-primary/90">
+                <span class="material-symbols-outlined text-lg" aria-hidden="true">edit</span> Edit
+            </a>
+            <a href="{{ route('admin.ip.index') }}" class="inline-flex h-11 items-center gap-2 rounded-lg border border-divider-subtle/40 bg-white px-4 text-sm font-bold text-text-main transition hover:bg-background-light">
+                <span class="material-symbols-outlined text-lg" aria-hidden="true">arrow_back</span> Records
+            </a>
         </div>
+    </header>
 
-        <!-- Associated Information Card -->
-        <div class="bg-white border border-divider-subtle/30 rounded-xl shadow-sm overflow-hidden">
-            <div class="px-6 py-4 border-b border-divider-subtle/30 bg-background-light">
-                <h3 class="text-lg font-bold text-text-main">Associated Information</h3>
-            </div>
-            <div class="p-6 grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div>
-                    <label class="block text-sm font-medium text-divider-subtle mb-1">Staff Members</label>
-                    <div class="space-y-2">
-                        @foreach($ip->staff as $staff)
-                            <div class="flex items-center gap-2">
-                                <span class="material-symbols-outlined text-sm text-primary">person</span>
-                                <span class="text-text-main">{{ $staff->staff_id }} - {{ $staff->staff_name }}</span>
-                            </div>
-                        @endforeach
-                    </div>
-                </div>
-                <div>
-                    <label class="block text-sm font-medium text-divider-subtle mb-1">Project</label>
-                    @if($ip->project)
-                        <p class="text-text-main font-medium">{{ $ip->project->project_id }} - {{ Str::limit($ip->project->project_title, 50) }}</p>
-                    @else
-                        <p class="text-text-main">-</p>
+    <div class="mx-auto max-w-6xl space-y-5 px-4 pb-8 sm:px-8">
+        @if(session('success'))
+            <div class="rounded-lg border border-green-200 bg-green-50 px-4 py-3 text-sm font-medium text-green-700" role="status">{{ session('success') }}</div>
+        @endif
+        @php
+            $sections = [
+                'Record Details' => [
+                    'Category' => str_replace('_', ' ', $ip->category ?: $ip->type),
+                    'IP Type' => str_replace('_', ' ', $ip->type),
+                    'Product / IP Name' => $ip->title,
+                    'New Product Name' => $ip->nama_produk_baru,
+                    'Filing Number' => $ip->ip_number,
+                    'Status' => $ip->status,
+                    'Record Number' => $ip->bil,
+                    'Year' => $ip->tahun ?: $ip->filing_date?->year,
+                    'Activity Year' => $ip->tahun_aktiviti,
+                ],
+                'Researchers & Project' => [
+                    'Researcher' => $ip->nama_penyelidik ?: $ip->staff->pluck('staff_name')->join(', '),
+                    'Co-researchers / Contribution' => $ip->penyelidik_bersama,
+                    'Faculty' => $ip->fakulti ?: $ip->staff->map(fn ($staff) => $staff->faculty?->faculty_code)->filter()->unique()->join(', '),
+                    'Staff ID' => $ip->no_staf ?: $ip->staff->pluck('staff_id')->join(', '),
+                    'Centre of Excellence (CoE)' => $ip->coe,
+                    'Position' => $ip->jawatan,
+                    'Researcher Title' => $ip->gelaran,
+                    'Linked Project' => $ip->project ? $ip->project->project_id.' - '.$ip->project->project_title : null,
+                    'Grant' => $ip->geran ?: $ip->project?->grant_no,
+                ],
+                'Filing & Renewal' => [
+                    'Filing Date' => $ip->filing_date?->format('d M Y'),
+                    'Grant Date' => $ip->grant_date?->format('d M Y'),
+                    'Expiry Date' => $ip->expiry_date?->format('d M Y'),
+                    'Notice Date' => $ip->tarikh_notis?->format('d M Y'),
+                    'Gazette Date' => $ip->tarikh_pewartaan?->format('d M Y'),
+                    'Gazette / Publication' => $ip->pewartaan,
+                    'Filing Cost' => $ip->kos !== null ? 'RM '.number_format((float) $ip->kos, 2) : null,
+                    'Last Renewal' => $ip->tarikh_renewal_terakhir?->format('d M Y'),
+                    'Next Renewal' => $ip->tarikh_renewal_seterusnya?->format('d M Y'),
+                    'Renewal Cost' => $ip->kos_renewal !== null ? 'RM '.number_format((float) $ip->kos_renewal, 2) : null,
+                    'Agent' => $ip->ejen,
+                    'Country' => $ip->country,
+                ],
+            ];
+        @endphp
+
+        @foreach($sections as $title => $items)
+            <section class="overflow-hidden rounded-xl border border-divider-subtle/30 bg-white shadow-sm">
+                <div class="border-b border-divider-subtle/20 bg-background-light px-5 py-4"><h2 class="text-lg font-bold text-text-main">{{ $title }}</h2></div>
+                <dl class="grid grid-cols-1 gap-x-6 gap-y-5 p-5 sm:grid-cols-2 xl:grid-cols-3 sm:p-6">
+                    @foreach($items as $label => $value)
+                        <div class="{{ in_array($label, ['Product / IP Name', 'New Product Name', 'Co-researchers / Contribution', 'Linked Project']) ? 'sm:col-span-2' : '' }}">
+                            <dt class="text-xs font-semibold uppercase tracking-wide text-divider-subtle">{{ $label }}</dt>
+                            <dd class="mt-1 whitespace-pre-line break-words text-sm font-medium text-text-main">{{ filled($value) ? $value : '—' }}</dd>
+                        </div>
+                    @endforeach
+                </dl>
+            </section>
+        @endforeach
+
+        @if($ip->abstrak || $ip->link_to_evidence || $ip->remarks || $ip->kategori)
+            <section class="overflow-hidden rounded-xl border border-divider-subtle/30 bg-white shadow-sm">
+                <div class="border-b border-divider-subtle/20 bg-background-light px-5 py-4"><h2 class="text-lg font-bold text-text-main">Additional Information</h2></div>
+                <div class="space-y-5 p-5 sm:p-6">
+                    @foreach(['Subcategory' => $ip->kategori, 'Abstract' => $ip->abstrak, 'Remarks' => $ip->remarks] as $label => $value)
+                        @if(filled($value))
+                            <div><h3 class="text-xs font-semibold uppercase tracking-wide text-divider-subtle">{{ $label }}</h3><p class="mt-1 whitespace-pre-line text-sm text-text-main">{{ $value }}</p></div>
+                        @endif
+                    @endforeach
+                    @if($ip->link_to_evidence)
+                        <div><h3 class="text-xs font-semibold uppercase tracking-wide text-divider-subtle">Evidence</h3><a href="{{ $ip->link_to_evidence }}" target="_blank" rel="noopener noreferrer" class="mt-1 inline-block break-all text-sm font-medium text-primary hover:underline">{{ $ip->link_to_evidence }}</a></div>
                     @endif
                 </div>
-                <div>
-                    <label class="block text-sm font-medium text-divider-subtle mb-1">Country</label>
-                    <p class="text-text-main font-medium">{{ $ip->country ?? '-' }}</p>
-                </div>
-            </div>
-        </div>
+            </section>
+        @endif
 
-        <!-- Additional Information Card -->
-        <div class="bg-white border border-divider-subtle/30 rounded-xl shadow-sm overflow-hidden">
-            <div class="px-6 py-4 border-b border-divider-subtle/30 bg-background-light">
-                <h3 class="text-lg font-bold text-text-main">Additional Information</h3>
-            </div>
-            <div class="p-6 space-y-6">
-                @if($ip->link_to_evidence)
-                    <div>
-                        <label class="block text-sm font-medium text-divider-subtle mb-1">Link to Evidence</label>
-                        <a href="{{ $ip->link_to_evidence }}" target="_blank" class="text-primary hover:underline">
-                            {{ $ip->link_to_evidence }}
-                        </a>
-                    </div>
-                @endif
-                @if($ip->remarks)
-                    <div>
-                        <label class="block text-sm font-medium text-divider-subtle mb-1">Remarks</label>
-                        <p class="text-text-main">{{ $ip->remarks }}</p>
-                    </div>
-                @endif
-            </div>
-        </div>
-
-        <!-- Actions -->
-        <div class="flex items-center justify-end gap-4">
-            <form action="{{ route('admin.ip.destroy', $ip->id) }}" method="POST"
-                onsubmit="return confirm('Are you sure you want to delete this IP?');">
+        <div class="flex justify-end">
+            <form action="{{ route('admin.ip.destroy', $ip->id) }}" method="POST" onsubmit="return confirm('Delete this IP record?')">
                 @csrf
                 @method('DELETE')
-                <button type="submit"
-                    class="h-11 px-6 bg-red-600 text-white text-sm font-bold rounded-lg hover:bg-red-700 transition-all">
-                    Delete
+                <button type="submit" class="inline-flex h-11 items-center gap-2 rounded-lg border border-red-200 bg-white px-5 text-sm font-bold text-red-700 transition hover:bg-red-50">
+                    <span class="material-symbols-outlined text-lg" aria-hidden="true">delete</span> Delete Record
                 </button>
             </form>
         </div>
     </div>
-</div>
 @endsection

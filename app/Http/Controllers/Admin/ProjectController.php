@@ -120,20 +120,20 @@ class ProjectController extends Controller
     {
         $project = Project::with([
             'awards' => function ($query) {
-                $query->with(['staff.faculty', 'event'])->orderBy('created_at', 'desc');
+                $query->with(['staff.faculty', 'competition', 'exhibitionResult'])->orderBy('created_at', 'desc');
             },
             'staff' => function ($query) {
                 $query->with('faculty')->withCount('awards');
             }
         ])->findOrFail($id);
 
-        // Calculate project statistics
+        // Calculate project statistics (case-insensitive matching)
         $stats = [
             'total_awards' => $project->awards->count(),
             'unique_staff' => $project->staff->count(),
-            'gold_awards' => $project->awards->where('award_level', 'Gold')->count(),
-            'silver_awards' => $project->awards->where('award_level', 'Silver')->count(),
-            'bronze_awards' => $project->awards->where('award_level', 'Bronze')->count(),
+            'gold_awards' => $project->awards->filter(fn($a) => strtoupper($a->award_level) === 'GOLD')->count(),
+            'silver_awards' => $project->awards->filter(fn($a) => strtoupper($a->award_level) === 'SILVER')->count(),
+            'bronze_awards' => $project->awards->filter(fn($a) => strtoupper($a->award_level) === 'BRONZE')->count(),
             'faculties_involved' => $project->staff->pluck('faculty.id')->unique()->count(),
         ];
 
@@ -147,7 +147,7 @@ class ProjectController extends Controller
                 'award_name' => $award->award_name,
                 'level' => $award->award_level,
                 'staff_name' => $award->staff->staff_name,
-                'event_name' => $award->event->event_name,
+                'event_name' => $award->competition->event_name ?? null,
             ];
         });
 

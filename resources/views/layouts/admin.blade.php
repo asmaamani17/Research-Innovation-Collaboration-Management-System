@@ -71,6 +71,24 @@
             margin-left: 0 !important;
         }
 
+        .sidebar-scroll::-webkit-scrollbar {
+            width: 5px;
+        }
+
+        .sidebar-scroll::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 10px;
+        }
+
+        .sidebar-scroll::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.25);
+            border-radius: 10px;
+        }
+
+        .sidebar-scroll::-webkit-scrollbar-thumb:hover {
+            background: rgba(255, 255, 255, 0.45);
+        }
+
         @media (max-width: 768px) {
             .sidebar-mobile {
                 position: fixed;
@@ -118,11 +136,11 @@
                 </div>
 
                 <!-- Navigation -->
-                <nav class="flex flex-col gap-1 grow">
+                <nav class="flex flex-col gap-1 grow overflow-y-auto min-h-0 sidebar-scroll pr-1">
                     @php
                         $user = auth()->user();
                         $userRole = $user ? $user->role : '';
-                        $isSuperadmin = $userRole === 'super_admin';
+                        $isSuperadmin = in_array($userRole, ['superadmin', 'super_admin'], true);
                         $isAdmin = $userRole === 'admin';
                         $isStaff = $userRole === 'section_staff';
                         
@@ -374,9 +392,14 @@
                             <p class="text-sm font-medium">Dashboard</p>
                         </a>
                         <a href="{{ route('admin.ip.index') }}"
-                            class="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-white/10 cursor-pointer transition-colors {{ request()->routeIs('admin.ip.index') ? 'active-nav' : '' }}">
-                            <span class="material-symbols-outlined text-white">inventory_2</span>
-                            <p class="text-sm font-medium">Intellectual Properties</p>
+                            class="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-white/10 cursor-pointer transition-colors {{ request()->routeIs('admin.ip.index', 'admin.ip.show', 'admin.ip.edit', 'admin.ip.create') ? 'active-nav' : '' }}">
+                            <span class="material-symbols-outlined text-white">list_alt</span>
+                            <p class="text-sm font-medium">IP Records</p>
+                        </a>
+                        <a href="{{ route('admin.ip.renewals') }}"
+                            class="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-white/10 cursor-pointer transition-colors {{ request()->routeIs('admin.ip.renewals') ? 'active-nav' : '' }}">
+                            <span class="material-symbols-outlined text-white">event_repeat</span>
+                            <p class="text-sm font-medium">Renewals</p>
                         </a>
                         <a href="{{ route('admin.staff.index') }}"
                             class="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-white/10 cursor-pointer transition-colors {{ request()->routeIs('admin.staff.index') ? 'active-nav' : '' }}">
@@ -397,6 +420,11 @@
                             class="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-white/10 cursor-pointer transition-colors {{ request()->routeIs('admin.ip.import') ? 'active-nav' : '' }}">
                             <span class="material-symbols-outlined text-white">upload_file</span>
                             <p class="text-sm font-medium">Import Data</p>
+                        </a>
+                        <a href="{{ route('admin.ip.renewals') }}"
+                            class="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-white/10 cursor-pointer transition-colors {{ request()->routeIs('admin.ip.renewals') ? 'active-nav' : '' }}">
+                            <span class="material-symbols-outlined text-white">event_repeat</span>
+                            <p class="text-sm font-medium">Renewals</p>
                         </a>
                         <a href="{{ route('admin.ip.reports') }}"
                             class="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-white/10 cursor-pointer transition-colors {{ request()->routeIs('admin.ip.reports') ? 'active-nav' : '' }}">

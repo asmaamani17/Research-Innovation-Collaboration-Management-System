@@ -57,6 +57,10 @@ Route::get('/admin/community-stem', [\App\Http\Controllers\Admin\CommunityStemDa
     ->middleware(['auth', 'superadmin'])
     ->name('admin.stem.dashboard');
 
+Route::get('/admin/community-stem/data', [\App\Http\Controllers\Admin\CommunityStemDashboardController::class, 'data'])
+    ->middleware(['auth', 'superadmin'])
+    ->name('admin.stem.data');
+
 Route::middleware(['auth', 'superadmin'])
     ->prefix('admin/community-stem/programs')
     ->name('admin.stem.programs.')
@@ -75,6 +79,8 @@ Route::middleware(['auth', 'superadmin'])
     ->prefix('admin/community-stem')
     ->name('admin.stem.')
     ->group(function () {
+        Route::get('/panduan', [\App\Http\Controllers\Admin\CommunityStemDashboardController::class, 'panduan'])
+            ->name('panduan');
         Route::get('/programs/duplicates/preview', [CommunityStemDuplicateController::class, 'preview'])
             ->name('programs.duplicates.preview');
         Route::post('/programs/duplicates/remove', [CommunityStemDuplicateController::class, 'remove'])
@@ -143,8 +149,10 @@ Route::middleware(['auth'])->prefix('admin/ip')->name('admin.ip.')->group(functi
     Route::post('/', [IpController::class, 'store'])->name('store');
     Route::get('/dashboard', [IpController::class, 'dashboard'])->name('dashboard');
     Route::get('/import', [IpController::class, 'import'])->name('import');
+    Route::post('/import', [IpController::class, 'importStore'])->name('import.store');
     Route::get('/reports', [IpController::class, 'reports'])->name('reports');
     Route::get('/export', [IpController::class, 'export'])->name('export');
+    Route::get('/renewals', [IpController::class, 'renewals'])->name('renewals');
     Route::get('/{id}', [IpController::class, 'show'])->name('show');
     Route::get('/{id}/edit', [IpController::class, 'edit'])->name('edit');
     Route::put('/{id}', [IpController::class, 'update'])->name('update');
@@ -193,6 +201,7 @@ Route::get('/admin/reports/event-participation', [ReportController::class, 'even
 // Export Routes
 Route::get('/admin/reports/export/excel', [ReportController::class, 'exportExcel'])->middleware(['auth'])->name('reports.export.excel');
 Route::get('/admin/reports/export/csv', [ReportController::class, 'exportCsv'])->middleware(['auth'])->name('reports.export.csv');
+Route::get('/admin/reports/export/pdf', [ReportController::class, 'exportPdf'])->middleware(['auth'])->name('reports.export.pdf');
 
 // API Routes for Charts
 Route::get('/api/reports/chart-data', [ReportController::class, 'getChartData'])->middleware(['auth'])->name('reports.api.chart-data');

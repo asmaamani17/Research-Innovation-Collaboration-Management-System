@@ -125,9 +125,9 @@ class CompetitionController extends Controller
      */
     public function show($id)
     {
-        $event = Competition::with([
+        $competition = Competition::with([
             'awards' => function ($query) {
-                $query->with(['staff.faculty', 'project'])->orderBy('created_at', 'desc');
+                $query->with(['staff.faculty', 'project', 'exhibitionResult'])->orderBy('created_at', 'desc');
             },
             'staff' => function ($query) {
                 $query->with('faculty')->distinct();
@@ -137,30 +137,30 @@ class CompetitionController extends Controller
             }
         ])->findOrFail($id);
 
-        // Calculate event statistics
+        // Calculate event statistics (case-insensitive matching)
         $stats = [
-            'total_awards' => $event->awards->count(),
-            'unique_participants' => $event->staff->count(),
-            'unique_projects' => $event->projects->count(),
-            'gold_awards' => $event->awards->where('award_level', 'Gold')->count(),
-            'silver_awards' => $event->awards->where('award_level', 'Silver')->count(),
-            'bronze_awards' => $event->awards->where('award_level', 'Bronze')->count(),
-            'faculties_involved' => $event->staff->pluck('faculty.id')->unique()->count(),
+            'total_awards' => $competition->awards->count(),
+            'unique_participants' => $competition->staff->count(),
+            'unique_projects' => $competition->projects->count(),
+            'gold_awards' => $competition->awards->filter(fn($a) => strtoupper($a->award_level) === 'GOLD')->count(),
+            'silver_awards' => $competition->awards->filter(fn($a) => strtoupper($a->award_level) === 'SILVER')->count(),
+            'bronze_awards' => $competition->awards->filter(fn($a) => strtoupper($a->award_level) === 'BRONZE')->count(),
+            'faculties_involved' => $competition->staff->pluck('faculty.id')->unique()->count(),
         ];
 
         // Get award statistics using model method
-        $award_stats = $event->award_stats;
+        $award_stats = $competition->award_stats;
 
         // Get award type statistics using model method
-        $award_type_stats = $event->award_type_stats;
+        $award_type_stats = $competition->award_type_stats;
 
         // Group awards by level
-        $awards_by_level = $event->awards->groupBy('award_level');
+        $awards_by_level = $competition->awards->groupBy('award_level');
 
         // Group staff by faculty
-        $staff_by_faculty = $event->staff->groupBy('faculty.faculty_name');
+        $staff_by_faculty = $competition->staff->groupBy('faculty.faculty_name');
 
-        return view('admin.awards.competitions.show', compact('event', 'stats', 'award_stats', 'award_type_stats', 'awards_by_level', 'staff_by_faculty'));
+        return view('admin.awards.competitions.show', compact('competition', 'stats', 'award_stats', 'award_type_stats', 'awards_by_level', 'staff_by_faculty'));
     }
 
     /**

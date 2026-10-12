@@ -12,9 +12,6 @@ class ModuleSeeder extends Seeder
      */
     public function run(): void
     {
-        // Clear existing data
-        DB::table('modules')->delete();
-        
         $modules = [
             [
                 'module_name' => 'KPI',
@@ -37,19 +34,17 @@ class ModuleSeeder extends Seeder
                 'updated_at' => now(),
             ],
             [
-                'module_name' => 'Community',
-                'created_at' => now(),
-                'updated_at' => now(),
-            ],
-            [
-                'module_name' => 'STEM',
+                'module_name' => 'Community/STEM/Industry',
                 'created_at' => now(),
                 'updated_at' => now(),
             ],
         ];
 
         foreach ($modules as $module) {
-            DB::table('modules')->insert($module);
+            DB::table('modules')->updateOrInsert(
+                ['module_name' => $module['module_name']],
+                ['updated_at' => $module['updated_at']]
+            );
         }
     }
 }

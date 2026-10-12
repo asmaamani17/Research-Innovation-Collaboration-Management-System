@@ -10,7 +10,7 @@
         'SPECIAL' => ['text' => 'text-primary', 'icon' => 'text-primary', 'badge' => 'bg-primary/10 text-primary'],
         'PLATINUM' => ['text' => 'text-cyan-700', 'icon' => 'text-cyan-500', 'badge' => 'bg-cyan-100 text-cyan-700'],
     ];
-    $awardKey = strtoupper($award->award_name ?? 'AWARD');
+    $awardKey = strtoupper($award->award_level ?? 'AWARD');
     $style = $awardStyles[$awardKey] ?? ['text' => 'text-text-main', 'icon' => 'text-primary', 'badge' => 'bg-primary/10 text-primary'];
 @endphp
 
@@ -55,9 +55,11 @@
                         <div class="flex flex-wrap gap-3 mb-4">
                             <span class="px-3 py-1 rounded-full {{ $style['badge'] }} text-sm font-bold">{{ $award->award_level }}</span>
                             <span class="px-3 py-1 rounded-full bg-blue-100 text-blue-700 text-sm font-bold">{{ $award->award_type }}</span>
-                            <span class="px-3 py-1 rounded-full {{ strtoupper($award->event->exhibition_level ?? '') === 'INTERNATIONAL' ? 'bg-purple-100 text-purple-700' : 'bg-green-100 text-green-700' }} text-sm font-bold">
-                                {{ $award->event->exhibition_level ?? 'N/A' }}
-                            </span>
+                            @if($award->exhibitionResult)
+                                <span class="px-3 py-1 rounded-full bg-green-100 text-green-700 text-sm font-bold">
+                                    {{ $award->exhibitionResult->Description }}
+                                </span>
+                            @endif
                         </div>
                         <p class="text-text-main/80">
                             Awarded on {{ optional($award->award_date)->format('F d, Y') ?? 'N/A' }}
@@ -114,26 +116,26 @@
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
                         <p class="text-sm text-divider-subtle mb-1">Event Name</p>
-                        <p class="text-text-main font-medium">{{ $award->event->event_name ?? 'Unknown Event' }}</p>
+                        <p class="text-text-main font-medium">{{ $award->competition->event_name ?? 'Unknown Event' }}</p>
                     </div>
                     <div>
                         <p class="text-sm text-divider-subtle mb-1">Organizer</p>
-                        <p class="text-text-main font-medium">{{ $award->event->organizer ?? 'N/A' }}</p>
+                        <p class="text-text-main font-medium">{{ $award->competition->organizer ?? 'N/A' }}</p>
                     </div>
                     <div>
                         <p class="text-sm text-divider-subtle mb-1">Exhibition Level</p>
-                        <p class="text-text-main font-medium">{{ $award->event->exhibition_level ?? 'N/A' }}</p>
+                        <p class="text-text-main font-medium">{{ $award->competition->exhibition_level ?? 'N/A' }}</p>
                     </div>
                     <div>
                         <p class="text-sm text-divider-subtle mb-1">Exhibition Place</p>
-                        <p class="text-text-main font-medium">{{ $award->event->exhibition_place ?? 'N/A' }}</p>
+                        <p class="text-text-main font-medium">{{ $award->competition->exhibition_place ?? 'N/A' }}</p>
                     </div>
                     <div>
                         <p class="text-sm text-divider-subtle mb-1">Event Date</p>
                         <p class="text-text-main font-medium">
-                            {{ optional($award->event->start_date)->format('M d, Y') ?? 'N/A' }}
-                            @if($award->event->end_date && $award->event->end_date != $award->event->start_date)
-                                - {{ optional($award->event->end_date)->format('M d, Y') ?? 'N/A' }}
+                            {{ optional($award->competition->start_date)->format('M d, Y') ?? 'N/A' }}
+                            @if($award->competition->end_date && $award->competition->end_date != $award->competition->start_date)
+                                - {{ optional($award->competition->end_date)->format('M d, Y') ?? 'N/A' }}
                             @endif
                         </p>
                     </div>

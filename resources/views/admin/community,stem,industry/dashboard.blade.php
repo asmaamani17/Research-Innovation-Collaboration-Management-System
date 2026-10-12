@@ -10,9 +10,15 @@
     // butang edit/tambah) -- cuma route filter yang perlu disesuaikan.
     $routeIndex = 'admin.stem.dashboard';
   @endphp
-  <header class="px-4 py-6 sm:px-8 sm:py-8">
-    <h1 class="text-2xl font-black leading-tight tracking-tight text-text-main sm:text-3xl">Dashboard Program Komuniti, STEM &amp; Industri</h1>
-    <p class="mt-1 text-sm font-medium leading-5 text-divider-subtle">Overview of community, STEM and industry programmes, participation, and monthly activity.</p>
+  <header class="flex items-center justify-between px-4 py-6 sm:px-8 sm:py-8">
+    <div>
+      <h1 class="text-2xl font-black leading-tight tracking-tight text-text-main sm:text-3xl">Dashboard Program Komuniti, STEM &amp; Industri</h1>
+      <p class="mt-1 text-sm font-medium leading-5 text-divider-subtle">Overview of community, STEM and industry programmes, participation, and monthly activity.</p>
+    </div>
+    <a href="{{ route('admin.stem.panduan') }}" class="inline-flex min-h-11 items-center justify-center gap-2 rounded-lg border border-divider-subtle/50 bg-white px-5 py-3 text-sm font-bold text-text-main transition hover:bg-background-light">
+      <span class="material-symbols-outlined" aria-hidden="true">menu_book</span>
+      Panduan
+    </a>
   </header>
 
   <div class="space-y-6 px-4 sm:px-8">
@@ -51,7 +57,7 @@
     <div class="group flex items-center justify-between gap-4 rounded-xl border border-divider-subtle/30 bg-white p-5 shadow-sm transition-colors hover:border-primary sm:p-6">
       <div>
         <div class="text-sm font-medium text-divider-subtle">Jumlah Penghantaran</div>
-        <div class="mt-2 text-3xl font-bold text-text-main">{{ number_format($total) }}</div>
+        <div class="mt-2 text-3xl font-bold text-text-main" id="stat-total">{{ number_format($total) }}</div>
         <div class="text-xs text-divider-subtle">rekod {{ request('tahun') ? 'tahun ' . request('tahun') : 'semua tahun' }}</div>
       </div>
       <div class="flex shrink-0 items-center justify-center rounded-lg bg-primary/10 p-3 text-primary">
@@ -61,8 +67,8 @@
     <div class="group flex items-center justify-between gap-4 rounded-xl border border-divider-subtle/30 bg-white p-5 shadow-sm transition-colors hover:border-primary sm:p-6">
       <div>
         <div class="text-sm font-medium text-divider-subtle">Program STEM</div>
-        <div class="mt-2 text-3xl font-bold text-[#3E7A5C]">{{ number_format($stemCount) }}</div>
-        <div class="text-xs text-divider-subtle">{{ $stemPct }}% daripada jumlah</div>
+        <div class="mt-2 text-3xl font-bold text-[#3E7A5C]" id="stat-stem">{{ number_format($stemCount) }}</div>
+        <div class="text-xs text-divider-subtle"><span id="stat-stem-pct">{{ $stemPct }}</span>% daripada jumlah</div>
       </div>
       <div class="flex shrink-0 items-center justify-center rounded-lg bg-[#3E7A5C]/10 p-3 text-[#3E7A5C]">
         <span class="material-symbols-outlined text-2xl" aria-hidden="true">science</span>
@@ -71,8 +77,8 @@
     <div class="group flex items-center justify-between gap-4 rounded-xl border border-divider-subtle/30 bg-white p-5 shadow-sm transition-colors hover:border-primary sm:p-6">
       <div>
         <div class="text-sm font-medium text-divider-subtle">Program Komuniti</div>
-        <div class="mt-2 text-3xl font-bold text-[#B0623E]">{{ number_format($komunitiCount) }}</div>
-        <div class="text-xs text-divider-subtle">{{ $komunitiPct }}% daripada jumlah</div>
+        <div class="mt-2 text-3xl font-bold text-[#B0623E]" id="stat-komuniti">{{ number_format($komunitiCount) }}</div>
+        <div class="text-xs text-divider-subtle"><span id="stat-komuniti-pct">{{ $komunitiPct }}</span>% daripada jumlah</div>
       </div>
       <div class="flex shrink-0 items-center justify-center rounded-lg bg-[#B0623E]/10 p-3 text-[#B0623E]">
         <span class="material-symbols-outlined text-2xl" aria-hidden="true">groups</span>
@@ -81,8 +87,8 @@
     <div class="group flex items-center justify-between gap-4 rounded-xl border border-divider-subtle/30 bg-white p-5 shadow-sm transition-colors hover:border-primary sm:p-6">
       <div>
         <div class="text-sm font-medium text-divider-subtle">Program Industri</div>
-        <div class="mt-2 text-3xl font-bold text-[#6E5AA8]">{{ number_format($industriCount) }}</div>
-        <div class="text-xs text-divider-subtle">{{ $industriPct }}% daripada jumlah</div>
+        <div class="mt-2 text-3xl font-bold text-[#6E5AA8]" id="stat-industri">{{ number_format($industriCount) }}</div>
+        <div class="text-xs text-divider-subtle"><span id="stat-industri-pct">{{ $industriPct }}</span>% daripada jumlah</div>
       </div>
       <div class="flex shrink-0 items-center justify-center rounded-lg bg-[#6E5AA8]/10 p-3 text-[#6E5AA8]">
         <span class="material-symbols-outlined text-2xl" aria-hidden="true">factory</span>
@@ -92,147 +98,250 @@
 
   <div class="grid grid-cols-1 gap-4 lg:grid-cols-[1.4fr_1fr]">
     <div class="min-w-0 rounded-xl border border-divider-subtle/30 bg-white p-5 shadow-sm sm:p-6">
-      <div class="mb-1 text-lg font-bold text-text-main">Penghantaran Mengikut Pusat</div>
+      <div class="flex items-center justify-between mb-1">
+        <div class="text-lg font-bold text-text-main">Penghantaran Mengikut Pusat</div>
+        <button id="refresh-pusat" onclick="refreshChart('pusat')" class="text-sm font-semibold text-primary hover:text-primary/80 transition-colors">
+          <span class="material-symbols-outlined text-sm">refresh</span>
+        </button>
+      </div>
       <div class="mb-4 text-sm text-divider-subtle">Pecahan STEM vs Komuniti vs Industri bagi setiap pusat</div>
-      @if(count($senaraiPusat) > 0)
-        <canvas id="carta-pusat" style="max-height: {{ 60 + (count($senaraiPusat) * 32) }}px;"></canvas>
-      @else
-        <div class="px-5 py-6 text-center text-sm text-divider-subtle">Tiada rekod untuk penapis ini.</div>
-      @endif
+      <div class="h-64">
+        <canvas id="carta-pusat"></canvas>
+      </div>
     </div>
     <div class="min-w-0 rounded-xl border border-divider-subtle/30 bg-white p-5 shadow-sm sm:p-6">
-      <div class="mb-1 text-lg font-bold text-text-main">STEM vs Komuniti vs Industri</div>
+      <div class="flex items-center justify-between mb-1">
+        <div class="text-lg font-bold text-text-main">STEM vs Komuniti vs Industri</div>
+        <button id="refresh-nisbah" onclick="refreshChart('nisbah')" class="text-sm font-semibold text-primary hover:text-primary/80 transition-colors">
+          <span class="material-symbols-outlined text-sm">refresh</span>
+        </button>
+      </div>
       <div class="mb-4 text-sm text-divider-subtle">Nisbah keseluruhan klasifikasi program</div>
-      <canvas id="carta-nisbah" height="90"></canvas>
+      <div class="h-64">
+        <canvas id="carta-nisbah"></canvas>
+      </div>
     </div>
   </div>
 
   <div class="grid grid-cols-1 gap-4 lg:grid-cols-[1.4fr_1fr]">
     <div class="min-w-0 rounded-xl border border-divider-subtle/30 bg-white p-5 shadow-sm sm:p-6">
-      <div class="mb-1 text-lg font-bold text-text-main">Trend Bulanan</div>
+      <div class="flex items-center justify-between mb-1">
+        <div class="text-lg font-bold text-text-main">Trend Bulanan</div>
+        <button id="refresh-bulanan" onclick="refreshChart('bulanan')" class="text-sm font-semibold text-primary hover:text-primary/80 transition-colors">
+          <span class="material-symbols-outlined text-sm">refresh</span>
+        </button>
+      </div>
       <div class="mb-4 text-sm text-divider-subtle">Jumlah program mengikut bulan.</div>
-      <canvas id="carta-bulanan" height="90"></canvas>
+      <div class="h-64">
+        <canvas id="carta-bulanan"></canvas>
+      </div>
     </div>
     <div class="min-w-0 rounded-xl border border-divider-subtle/30 bg-white p-5 shadow-sm sm:p-6">
-      <div class="mb-1 text-lg font-bold text-text-main">Kategori Program (KSTP / CSR)</div>
+      <div class="flex items-center justify-between mb-1">
+        <div class="text-lg font-bold text-text-main">Kategori Program (KSTP / CSR)</div>
+        <button id="refresh-kategori" onclick="refreshChart('kategori')" class="text-sm font-semibold text-primary hover:text-primary/80 transition-colors">
+          <span class="material-symbols-outlined text-sm">refresh</span>
+        </button>
+      </div>
       <div class="mb-4 text-sm text-divider-subtle">Taburan mengikut kategori borang</div>
-      <canvas id="carta-kategori" height="90"></canvas>
+      <div class="h-64">
+        <canvas id="carta-kategori"></canvas>
+      </div>
     </div>
   </div>
 
   </div>
-  <script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
-  <script>
-    Chart.defaults.font.family = 'Inter, sans-serif';
+@push('scripts')
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script>
+    const chartApiUrl = "{{ route('admin.stem.data') }}";
+    let chartPusat, chartNisbah, chartBulanan, chartKategori;
 
-    const senaraiPusat = @json($senaraiPusat);
-
-    // BARU: format label legend "Nama: Kiraan (X%)" -- dikongsi carta
-    // donut & pie. Chart.js panggil ni setiap kali carta di-render.
-    function labelDenganPeratus(chart) {
-      const dataset = chart.data.datasets[0];
-      const jumlah = dataset.data.reduce((a, b) => a + b, 0);
-      return chart.data.labels.map((label, i) => {
-        const nilai = dataset.data[i];
-        const peratus = jumlah > 0 ? ((nilai / jumlah) * 100).toFixed(1) : 0;
-        return {
-          text: `${label}: ${nilai} (${peratus}%)`,
-          fillStyle: dataset.backgroundColor[i],
-          index: i,
-        };
-      });
+    // Initialize all charts
+    async function initCharts() {
+        await Promise.all([
+            loadStats(),
+            loadPusatChart(),
+            loadNisbahChart(),
+            loadBulananChart(),
+            loadKategoriChart()
+        ]);
     }
 
-    @if(count($senaraiPusat) > 0)
-    new Chart(document.getElementById('carta-pusat'), {
-      type: 'bar',
-      data: {
-        labels: senaraiPusat,
-        datasets: [
-          { label: 'STEM',     data: @json($stemSiri),     backgroundColor: '#3E7A5C' },
-          { label: 'Komuniti', data: @json($komunitiSiri), backgroundColor: '#B0623E' },
-          { label: 'Industri', data: @json($industriSiri), backgroundColor: '#6E5AA8' },
-        ]
-      },
-      options: {
-        indexAxis: 'y',
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: { legend: { position: 'bottom' } },
-        scales: { x: { stacked: true }, y: { stacked: true } }
-      }
-    });
-    @endif
+    // Load Stats
+    async function loadStats() {
+        const response = await fetch(`${chartApiUrl}?type=stats${getFilterParams()}`);
+        const data = await response.json();
 
-    new Chart(document.getElementById('carta-nisbah'), {
-      type: 'doughnut',
-      data: {
-        labels: ['STEM', 'Komuniti', 'Industri'],
-        datasets: [{
-          data: [{{ $stemCount }}, {{ $komunitiCount }}, {{ $industriCount }}],
-          backgroundColor: ['#3E7A5C', '#B0623E', '#6E5AA8']
-        }]
-      },
-      options: {
-        responsive: true,
-        plugins: { legend: { position: 'bottom', labels: { generateLabels: labelDenganPeratus } } }
-      }
-    });
+        document.getElementById('stat-total').textContent = new Intl.NumberFormat().format(data.total);
+        document.getElementById('stat-stem').textContent = new Intl.NumberFormat().format(data.stemCount);
+        document.getElementById('stat-stem-pct').textContent = data.stemPct;
+        document.getElementById('stat-komuniti').textContent = new Intl.NumberFormat().format(data.komunitiCount);
+        document.getElementById('stat-komuniti-pct').textContent = data.komunitiPct;
+        document.getElementById('stat-industri').textContent = new Intl.NumberFormat().format(data.industriCount);
+        document.getElementById('stat-industri-pct').textContent = data.industriPct;
+    }
 
-    // Trend Bulanan -- carta kawasan (area chart).
-    new Chart(document.getElementById('carta-bulanan'), {
-      type: 'line',
-      data: {
-        labels: @json($namaBulan),
-        datasets: [
-          {
-            label: 'Community',
-            data: @json($bulananKomuniti),
-            borderColor: '#B0623E',
-            backgroundColor: 'rgba(176, 98, 62, 0.2)',
-            fill: true,
-            tension: 0.35,
-          },
-          {
-            label: 'STEM',
-            data: @json($bulananStem),
-            borderColor: '#3E7A5C',
-            backgroundColor: 'rgba(62, 122, 92, 0.15)',
-            fill: false,
-            tension: 0.35,
-          },
-          {
-            label: 'Industri',
-            data: @json($bulananIndustri),
-            borderColor: '#6E5AA8',
-            backgroundColor: 'rgba(110, 90, 168, 0.15)',
-            fill: false,
-            tension: 0.35,
-          },
-        ]
-      },
-      options: {
-        responsive: true,
-        plugins: { legend: { position: 'bottom' } },
-        scales: { y: { beginAtZero: true, ticks: { precision: 0 } } }
-      }
-    });
+    // Load Pusat Chart (Stacked Bar)
+    async function loadPusatChart() {
+        const response = await fetch(`${chartApiUrl}?type=pusat${getFilterParams()}`);
+        const data = await response.json();
 
-    // Kategori Program (KSTP/CSR).
-    new Chart(document.getElementById('carta-kategori'), {
-      type: 'pie',
-      data: {
-        labels: @json($labelKategori),
-        datasets: [{
-          data: @json($dataKategori),
-          backgroundColor: ['#B08A3E', '#1F2A24', '#B0623E', '#6E5AA8', '#3E7A5C']
-        }]
-      },
-      options: {
-        responsive: true,
-        plugins: { legend: { position: 'bottom', labels: { generateLabels: labelDenganPeratus } } }
-      }
-    });
-  </script>
-  </div>
+        const ctx = document.getElementById('carta-pusat');
+        if (!ctx) return;
+
+        if (chartPusat) chartPusat.destroy();
+
+        chartPusat = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: data.senaraiPusat,
+                datasets: [
+                    { label: 'STEM',     data: data.stemSiri,     backgroundColor: '#3E7A5C' },
+                    { label: 'Komuniti', data: data.komunitiSiri, backgroundColor: '#B0623E' },
+                    { label: 'Industri', data: data.industriSiri, backgroundColor: '#6E5AA8' },
+                ]
+            },
+            options: {
+                indexAxis: 'y',
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { position: 'bottom' } },
+                scales: { x: { stacked: true }, y: { stacked: true } }
+            }
+        });
+    }
+
+    // Load Nisbah Chart (Doughnut)
+    async function loadNisbahChart() {
+        const response = await fetch(`${chartApiUrl}?type=nisbah${getFilterParams()}`);
+        const data = await response.json();
+
+        const ctx = document.getElementById('carta-nisbah');
+        if (!ctx) return;
+
+        if (chartNisbah) chartNisbah.destroy();
+
+        chartNisbah = new Chart(ctx, {
+            type: 'doughnut',
+            data: {
+                labels: ['STEM', 'Komuniti', 'Industri'],
+                datasets: [{
+                    data: [data.stemCount, data.komunitiCount, data.industriCount],
+                    backgroundColor: ['#3E7A5C', '#B0623E', '#6E5AA8']
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { position: 'bottom' } }
+            }
+        });
+    }
+
+    // Load Bulanan Chart (Line)
+    async function loadBulananChart() {
+        const response = await fetch(`${chartApiUrl}?type=bulanan${getFilterParams()}`);
+        const data = await response.json();
+
+        const ctx = document.getElementById('carta-bulanan');
+        if (!ctx) return;
+
+        if (chartBulanan) chartBulanan.destroy();
+
+        chartBulanan = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: data.namaBulan,
+                datasets: [
+                    {
+                        label: 'Community',
+                        data: data.bulananKomuniti,
+                        borderColor: '#B0623E',
+                        backgroundColor: 'rgba(176, 98, 62, 0.2)',
+                        fill: true,
+                        tension: 0.35,
+                    },
+                    {
+                        label: 'STEM',
+                        data: data.bulananStem,
+                        borderColor: '#3E7A5C',
+                        backgroundColor: 'rgba(62, 122, 92, 0.15)',
+                        fill: false,
+                        tension: 0.35,
+                    },
+                    {
+                        label: 'Industri',
+                        data: data.bulananIndustri,
+                        borderColor: '#6E5AA8',
+                        backgroundColor: 'rgba(110, 90, 168, 0.15)',
+                        fill: false,
+                        tension: 0.35,
+                    },
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { position: 'bottom' } },
+                scales: { y: { beginAtZero: true, ticks: { precision: 0 } } }
+            }
+        });
+    }
+
+    // Load Kategori Chart (Pie)
+    async function loadKategoriChart() {
+        const response = await fetch(`${chartApiUrl}?type=kategori${getFilterParams()}`);
+        const data = await response.json();
+
+        const ctx = document.getElementById('carta-kategori');
+        if (!ctx) return;
+
+        if (chartKategori) chartKategori.destroy();
+
+        chartKategori = new Chart(ctx, {
+            type: 'pie',
+            data: {
+                labels: data.labelKategori,
+                datasets: [{
+                    data: data.dataKategori,
+                    backgroundColor: ['#B08A3E', '#1F2A24', '#B0623E', '#6E5AA8', '#3E7A5C']
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { position: 'bottom' } }
+            }
+        });
+    }
+
+    // Get filter parameters from URL
+    function getFilterParams() {
+        const params = new URLSearchParams(window.location.search);
+        let query = '';
+        if (params.get('tahun')) query += `&tahun=${params.get('tahun')}`;
+        if (params.get('pusat')) query += `&pusat=${params.get('pusat')}`;
+        return query ? query : '';
+    }
+
+    // Refresh specific chart
+    async function refreshChart(type) {
+        switch(type) {
+            case 'pusat': await loadPusatChart(); break;
+            case 'nisbah': await loadNisbahChart(); break;
+            case 'bulanan': await loadBulananChart(); break;
+            case 'kategori': await loadKategoriChart(); break;
+        }
+    }
+
+    // Auto-refresh charts every 30 seconds
+    setInterval(async () => {
+        await initCharts();
+    }, 30000);
+
+    // Initialize on page load
+    document.addEventListener('DOMContentLoaded', initCharts);
+</script>
+@endpush
 @endsection

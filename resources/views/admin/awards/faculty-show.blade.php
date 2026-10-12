@@ -175,6 +175,10 @@
                                             <span>{{ $award->project->project_title }}</span>
                                             <span>•</span>
                                         @endif
+                                        @if($award->competition)
+                                            <span>{{ $award->competition->event_name }}</span>
+                                            <span>•</span>
+                                        @endif
                                         <span>{{ $award->award_date ? \Carbon\Carbon::parse($award->award_date)->format('M d, Y') : 'N/A' }}</span>
                                     </div>
                                 </div>
@@ -190,6 +194,37 @@
                     </div>
                 </div>
             @endif
+        </div>
+    </div>
+
+    <!-- Edit Faculty Modal -->
+    <div id="editFacultyModal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4">
+        <div class="w-full max-w-lg rounded-xl bg-white p-6 shadow-xl">
+            <div class="mb-6 flex items-center justify-between">
+                <h3 class="text-xl font-bold text-text-main">Edit Faculty</h3>
+                <button type="button" onclick="closeEditFacultyModal()" class="text-divider-subtle hover:text-text-main" aria-label="Close">
+                    <span class="material-symbols-outlined">close</span>
+                </button>
+            </div>
+            <form id="editFacultyForm" method="POST" class="space-y-4">
+                @csrf
+                @method('PUT')
+                <input id="edit_faculty_id" type="hidden" name="id">
+                <div>
+                    <label for="edit_faculty_code" class="mb-1 block text-sm font-semibold text-text-main">Faculty Code</label>
+                    <input id="edit_faculty_code" name="faculty_code" type="text" required maxlength="20"
+                        class="w-full rounded-lg border border-divider-subtle/40 px-4 py-3 text-sm focus:border-primary focus:ring-primary">
+                </div>
+                <div>
+                    <label for="edit_faculty_name" class="mb-1 block text-sm font-semibold text-text-main">Faculty Name</label>
+                    <input id="edit_faculty_name" name="faculty_name" type="text" required maxlength="100"
+                        class="w-full rounded-lg border border-divider-subtle/40 px-4 py-3 text-sm focus:border-primary focus:ring-primary">
+                </div>
+                <div class="flex justify-end gap-3 pt-2">
+                    <button type="button" onclick="closeEditFacultyModal()" class="rounded-lg border border-divider-subtle/40 px-4 py-2 text-sm font-semibold text-text-main hover:bg-background-light">Cancel</button>
+                    <button type="submit" class="rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-white hover:bg-primary/90">Save Changes</button>
+                </div>
+            </form>
         </div>
     </div>
 @endsection

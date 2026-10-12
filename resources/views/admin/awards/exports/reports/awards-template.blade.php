@@ -14,7 +14,7 @@
         @foreach($awards as $index => $award)
             <tr>
                 <td>{{ $index + 1 }}</td>
-                <td>{{ $award->project->project_id ?? 'N/A' }}</td>
+                <td>{{ $award->project->project_id ?? 'TIADA' }}</td>
                 <td>{{ $award->staff->staff_id ?? 'N/A' }}</td>
                 <td>{{ $award->staff->PersonTypeID ?? '1' }}</td>
                 <td>{{ $award->staff->staff_name ?? 'N/A' }}</td>
@@ -44,16 +44,16 @@
         @foreach($awards as $index => $award)
             <tr>
                 <td>{{ $index + 1 }}</td>
-                <td>{{ $award->project->project_id ?? 'N/A' }}</td>
+                <td>{{ $award->project->project_id ?? 'TIADA' }}</td>
                 <td>{{ $award->project->project_title ?? 'N/A' }}</td>
                 <td>{{ $award->event->event_name ?? 'N/A' }}</td>
                 <td>{{ $award->event->exhibition_level_id ?? 'N/A' }}</td>
                 <td>{{ $award->exhibition_result_id ?? 'N/A' }}</td>
                 <td>{{ $award->event->exhibition_place ?? 'N/A' }}</td>
-                <td>{{ $award->event->start_date ? \Carbon\Carbon::parse($award->event->start_date)->format('d-m-Y') : 'N/A' }}</td>
-                <td>{{ $award->event->end_date ? \Carbon\Carbon::parse($award->event->end_date)->format('d-m-Y') : 'N/A' }}</td>
+                <td>{{ $award->event?->start_date ? \Carbon\Carbon::parse($award->event->start_date)->format('Y-m-d') : 'N/A' }}</td>
+                <td>{{ $award->event?->end_date ? \Carbon\Carbon::parse($award->event->end_date)->format('Y-m-d') : 'N/A' }}</td>
                 <td>{{ $award->amount ? 'RM' . number_format($award->amount, 2) : 'RM0.00' }}</td>
-                <td>1</td>
+                <td>{{ $award->invention_award ?? 'N/A' }}</td>
             </tr>
         @endforeach
     </tbody>
@@ -137,8 +137,8 @@
                 <td>{{ $award->project->project_title ?? 'N/A' }}</td>
                 <td>{{ $award->event->event_name ?? 'N/A' }}</td>
                 <td>{{ $award->event->exhibition_place ?? 'N/A' }}</td>
-                <td>{{ $award->event->start_date ? \Carbon\Carbon::parse($award->event->start_date)->format('d-m-Y') : 'N/A' }}</td>
-                <td>{{ $award->event->end_date ? \Carbon\Carbon::parse($award->event->end_date)->format('d-m-Y') : 'N/A' }}</td>
+                <td>{{ $award->event?->start_date ? \Carbon\Carbon::parse($award->event->start_date)->format('d-m-Y') : 'N/A' }}</td>
+                <td>{{ $award->event?->end_date ? \Carbon\Carbon::parse($award->event->end_date)->format('d-m-Y') : 'N/A' }}</td>
                 <td>{{ $award->amount ?? 'N/A' }}</td>
             </tr>
         @endforeach

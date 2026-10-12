@@ -38,9 +38,17 @@ class AwardsTemplateExport implements FromView, WithTitle, WithStyles, WithColum
     public function styles(Worksheet $sheet): array
     {
         return [
-            1 => ['font' => ['bold' => true, 'size' => 11]],
-            'A1:N1' => ['fill' => ['fillType' => \PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID, 'startColor' => ['rgb' => '4472C4']]],
-            'A1:N1' => ['font' => ['color' => ['rgb' => 'FFFFFF']]],
+            1 => [
+                'font' => [
+                    'bold' => true,
+                    'size' => 11,
+                    'color' => ['rgb' => 'FFFFFF']
+                ],
+                'fill' => [
+                    'fillType' => \PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID,
+                    'startColor' => ['rgb' => '184290']
+                ],
+            ],
         ];
     }
 
@@ -68,7 +76,12 @@ class AwardsTemplateExport implements FromView, WithTitle, WithStyles, WithColum
     {
         // Get all awards for the specified year with all related data
         $query = Award::with(['staff.faculty', 'project', 'event'])
-            ->whereYear('award_date', $this->year);
+            ->where(function ($q) {
+                $q->whereYear('award_date', $this->year)
+                  ->orWhereHas('event', function ($eq) {
+                      $eq->whereYear('end_date', $this->year);
+                  });
+            });
 
         // Apply filters if provided
         if (isset($this->filters['faculty']) && $this->filters['faculty']) {

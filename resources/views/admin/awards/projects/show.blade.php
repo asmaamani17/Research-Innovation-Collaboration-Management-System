@@ -22,7 +22,7 @@
             </p>
         </div>
         <div class="flex items-center gap-2">
-            <a href="{{ route('admin.projects.index') }}"
+            <a href="{{ route('admin.projects.edit', $project->id) }}"
                 class="flex items-center gap-2 px-6 py-3 bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors font-medium shadow-lg">
                 <span class="material-symbols-outlined">edit</span>
                 <span>Edit</span>
@@ -120,8 +120,11 @@
                                 <div class="flex-shrink-0">
                                     @php
                                         $levelColors = [
+                                            'GOLD' => 'bg-yellow-100 text-yellow-700',
                                             'Gold' => 'bg-yellow-100 text-yellow-700',
+                                            'SILVER' => 'bg-gray-100 text-gray-700',
                                             'Silver' => 'bg-gray-100 text-gray-700',
+                                            'BRONZE' => 'bg-orange-100 text-orange-700',
                                             'Bronze' => 'bg-orange-100 text-orange-700'
                                         ];
                                         $color = $levelColors[$award->award_level] ?? 'bg-gray-100 text-gray-700';
@@ -137,12 +140,12 @@
                                             class="text-primary hover:underline">
                                             {{ $award->staff->staff_name }}
                                         </a>
-                                        @if($award->event)
-                                            @ {{ $award->event->event_name }}
+                                        @if($award->competition)
+                                            @ {{ $award->competition->event_name }}
                                         @endif
                                     </p>
                                     <div class="text-xs text-divider-subtle mt-2">
-                                        {{ $award->award_date ? $award->award_date->format('M d, Y') : 'N/A' }}
+                                        {{ $award->award_date ? \Carbon\Carbon::parse($award->award_date)->format('M d, Y') : 'N/A' }}
                                     </div>
                                 </div>
                             </div>

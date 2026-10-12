@@ -151,6 +151,7 @@ class AwardController extends Controller
             'award_name' => 'required|string|in:PLATINUM,SPECIAL,GOLD,SILVER,BRONZE,OTHERS',
             'award_level' => 'required|string|in:INDIVIDUAL,INSTITUTIONAL',
             'award_type' => 'required|string|in:AWARD,RECOGNITION,STEWARDSHIP,EXHIBITION,OTHER RESEARCH AWARDS,CLARIVATE HIGHLY AWARD',
+            'invention_award' => 'nullable|integer|in:1,2',
             'event_exhibition_level' => 'required|string|in:National,International',
             'award_date' => 'required|date',
             'evidence_document' => 'nullable|file|max:10240|mimes:pdf,doc,docx,xls,xlsx,jpg,jpeg,png,zip',
@@ -204,6 +205,7 @@ class AwardController extends Controller
             'award_name' => strtoupper(trim($request->award_name)),
             'award_level' => strtoupper(trim($request->award_level)),
             'award_type' => strtoupper(trim($request->award_type)),
+            'invention_award' => $request->invention_award ? (int)$request->invention_award : null,
             'award_date' => $request->award_date,
             'evidence_document' => null,
         ];
@@ -346,6 +348,7 @@ class AwardController extends Controller
             'award_name' => 'required|string|in:PLATINUM,SPECIAL,GOLD,SILVER,BRONZE,OTHERS',
             'award_level' => 'required|string|in:INDIVIDUAL,INSTITUTIONAL',
             'award_type' => 'required|string|in:AWARD,RECOGNITION,STEWARDSHIP,EXHIBITION,OTHER RESEARCH AWARDS,CLARIVATE HIGHLY AWARD',
+            'invention_award' => 'nullable|integer|in:1,2',
             'award_date' => 'required|date',
             'evidence_document' => [
                 'nullable',
@@ -365,6 +368,7 @@ class AwardController extends Controller
                 'award_name' => strtoupper(trim($request->award_name)),
                 'award_level' => strtoupper(trim($request->award_level)),
                 'award_type' => strtoupper(trim($request->award_type)),
+                'invention_award' => $request->invention_award ? (int)$request->invention_award : null,
                 'award_date' => $request->award_date,
             ];
 
@@ -595,53 +599,98 @@ class AwardController extends Controller
     /**
      * Display awards dashboard with statistics and charts.
      */
-    public function dashboard()
+    public function dashboard(Request $request)
     {
+        $filters = $request->only(['year', 'faculty']);
+
+        $applyFilters = static function ($query) use ($filters) {
+            if (!empty($filters['year'])) {
+                $query->whereYear('award_date', $filters['year']);
+            }
+
+            if (!empty($filters['faculty'])) {
+                $query->whereHas('staff', function($q) use ($filters) {
+                    $q->where('faculty_id', $filters['faculty']);
+                });
+            }
+
+            return $query;
+        };
+
+        // Get filter options
+        $senaraiTahunFilter = Award::query()
+            ->whereNotNull('award_date')
+            ->selectRaw('DISTINCT YEAR(award_date) as year')
+            ->orderByDesc('year')
+            ->pluck('year');
+
+        // If no years found, add current year as default
+        if ($senaraiTahunFilter->isEmpty()) {
+            $senaraiTahunFilter = collect([date('Y')]);
+        }
+
+        $senaraiFacultyFilter = Faculty::query()
+            ->orderBy('faculty_name')
+            ->get();
+
         // Get summary statistics
+        $thisYear = !empty($filters['year']) ? $filters['year'] : date('Y');
         $stats = [
-            'total_awards' => Award::count(),
+            'total_awards' => $applyFilters(Award::query())->count(),
             'total_staff' => Staff::count(),
             'total_projects' => Project::count(),
-            'this_year_awards' => Award::whereYear('award_date', date('Y'))->count(),
+            'this_year_awards' => $applyFilters(Award::query())->whereYear('award_date', $thisYear)->count(),
         ];
 
         // Get top faculties by awards
-        $top_faculties = Faculty::withCount('awards')
+        $top_faculties = Faculty::withCount(['awards' => function($query) use ($applyFilters) {
+            $applyFilters($query);
+        }])
             ->orderBy('awards_count', 'desc')
             ->limit(6)
             ->get();
         $max_faculty_awards = $top_faculties->max('awards_count') ?? 1;
 
         // Get award level distribution
-        $awardLevels = Award::selectRaw('award_name, COUNT(*) as count')
+        $awardLevels = $applyFilters(Award::query())
+            ->selectRaw('award_name, COUNT(*) as count')
             ->groupBy('award_name')
             ->orderBy('count', 'desc')
             ->get();
 
         // Get award type distribution
-        $awardTypes = Award::selectRaw('award_type, COUNT(*) as count')
+        $awardTypes = $applyFilters(Award::query())
+            ->selectRaw('award_type, COUNT(*) as count')
             ->whereNotNull('award_type')
             ->groupBy('award_type')
             ->orderBy('count', 'desc')
             ->get();
 
-        // Get monthly awards trend (last 12 months)
-        $monthlyTrend = Award::selectRaw('YEAR(award_date) as year, MONTH(award_date) as month, COUNT(*) as count')
-            ->where('award_date', '>=', now()->subMonths(12))
-            ->groupBy('year', 'month')
+        // Get monthly awards trend (last 12 months or all months in selected year)
+        $monthlyTrendQuery = $applyFilters(Award::query())
+            ->selectRaw('YEAR(award_date) as year, MONTH(award_date) as month, COUNT(*) as count');
+
+        // If year filter is not set, get last 12 months
+        if (empty($filters['year'])) {
+            $monthlyTrendQuery->where('award_date', '>=', now()->subMonths(12));
+        }
+
+        $monthlyTrend = $monthlyTrendQuery->groupBy('year', 'month')
             ->orderBy('year')
             ->orderBy('month')
             ->get();
 
         // Get awards by exhibition level
-        $exhibitionLevels = Award::join('competitions', 'awards.competition_id', '=', 'competitions.id')
+        $exhibitionLevels = $applyFilters(Award::query())
+            ->join('competitions', 'awards.competition_id', '=', 'competitions.id')
             ->selectRaw('competitions.exhibition_level, COUNT(*) as count')
             ->groupBy('competitions.exhibition_level')
             ->orderBy('count', 'desc')
             ->get();
 
         // Add university awards (awards with no competition or university-level competitions)
-        $universityAwards = Award::whereNull('competition_id')
+        $universityAwards = $applyFilters(Award::query())
+            ->whereNull('competition_id')
             ->orWhereHas('event', function($query) {
                 $query->where('exhibition_level', 'University');
             })
@@ -661,7 +710,9 @@ class AwardController extends Controller
             'awardLevels',
             'awardTypes',
             'monthlyTrend',
-            'exhibitionLevels'
+            'exhibitionLevels',
+            'senaraiTahunFilter',
+            'senaraiFacultyFilter'
         ));
     }
 
@@ -676,9 +727,9 @@ class AwardController extends Controller
     /**
      * Display the awards reports page.
      */
-    public function reports()
+    public function reports(Request $request)
     {
-        return view('admin.awards.reports.index');
+        return app(\App\Http\Controllers\Admin\ReportController::class)->index($request);
     }
 
     /**
@@ -686,54 +737,112 @@ class AwardController extends Controller
      */
     public function chartData(Request $request)
     {
-        $type = $request->get('type', 'all');
+        $filters = $request->validate([
+            'year' => ['nullable', 'integer', 'between:1900,2100'],
+            'faculty' => ['nullable', 'integer', 'exists:faculties,id'],
+            'type' => ['nullable', 'string', 'in:levels,types,others,monthly,faculties,exhibition,results,stats'],
+        ]);
+
+        $applyFilters = static function ($query) use ($filters) {
+            if (!empty($filters['year'])) {
+                $query->whereYear('award_date', $filters['year']);
+            }
+
+            if (!empty($filters['faculty'])) {
+                $query->whereHas('staff', function($q) use ($filters) {
+                    $q->where('faculty_id', $filters['faculty']);
+                });
+            }
+
+            return $query;
+        };
+
+        $type = $filters['type'] ?? 'all';
         $data = [];
 
         switch ($type) {
+            case 'stats':
+                $total = $applyFilters(Award::query())->count();
+                $thisYear = !empty($filters['year']) ? $filters['year'] : date('Y');
+                $thisYearCount = $applyFilters(Award::query())->whereYear('award_date', $thisYear)->count();
+                $data = [
+                    'total_awards' => $total,
+                    'this_year_awards' => $thisYearCount,
+                ];
+                break;
             case 'levels':
-                $data = Award::selectRaw('award_level, COUNT(*) as count')
-                    ->whereNotNull('award_level')
-                    ->groupBy('award_level')
+                $data = $applyFilters(Award::query())
+                    ->selectRaw('award_name as award_level, COUNT(*) as count')
+                    ->whereNotNull('award_name')
+                    ->groupBy('award_name')
                     ->orderBy('count', 'desc')
                     ->get();
                 break;
             case 'types':
-                $data = Award::selectRaw('award_type, COUNT(*) as count')
+                $data = $applyFilters(Award::query())
+                    ->selectRaw('award_type, COUNT(*) as count')
                     ->whereNotNull('award_type')
                     ->groupBy('award_type')
                     ->orderBy('count', 'desc')
                     ->get();
                 break;
+            case 'others':
+                $data = $applyFilters(Award::query())
+                    ->selectRaw("COALESCE(award_type, 'Others') as label, COUNT(*) as count")
+                    ->whereRaw('UPPER(award_name) = ?', ['OTHERS'])
+                    ->groupBy('award_type')
+                    ->orderBy('count', 'desc')
+                    ->get();
+                break;
             case 'monthly':
-                $data = Award::selectRaw('YEAR(award_date) as year, MONTH(award_date) as month, COUNT(*) as count')
-                    ->where('award_date', '>=', now()->subMonths(12))
-                    ->groupBy('year', 'month')
+                $query = $applyFilters(Award::query())
+                    ->selectRaw('YEAR(award_date) as year, MONTH(award_date) as month, COUNT(*) as count');
+
+                // If year filter is not set, get last 12 months
+                if (empty($filters['year'])) {
+                    $query->where('award_date', '>=', now()->subMonths(12));
+                }
+
+                $data = $query->groupBy('year', 'month')
                     ->orderBy('year')
                     ->orderBy('month')
                     ->get();
                 break;
             case 'faculties':
-                $data = Faculty::select('faculties.id', 'faculties.faculty_code', 'faculties.faculty_name')
-                    ->join('staff', 'faculties.id', '=', 'staff.faculty_id')
-                    ->join('awards', 'staff.id', '=', 'awards.staff_id')
-                    ->join('exhibition_results', 'awards.exhibition_result_id', '=', 'exhibition_results.ExhibitionResultID')
-                    ->selectRaw('faculties.id, faculties.faculty_code, faculties.faculty_name,
-                        exhibition_results.Description as result_description,
-                        COUNT(awards.id) as count')
-                    ->groupBy('faculties.id', 'faculties.faculty_code', 'faculties.faculty_name', 'exhibition_results.ExhibitionResultID', 'exhibition_results.Description')
+                $query = Award::query()
+                    ->leftJoin('staff', 'awards.staff_id', '=', 'staff.id')
+                    ->leftJoin('faculties', 'staff.faculty_id', '=', 'faculties.id')
+                    ->leftJoin('exhibition_results', 'awards.exhibition_result_id', '=', 'exhibition_results.ExhibitionResultID')
+                    ->selectRaw("COALESCE(faculties.id, 0) as id,
+                        COALESCE(faculties.faculty_code, 'No Faculty') as faculty_code,
+                        COALESCE(faculties.faculty_name, 'No Faculty') as faculty_name,
+                        COALESCE(exhibition_results.Description, awards.award_name, 'Not Specified') as result_description,
+                        COUNT(awards.id) as count");
+
+                if (!empty($filters['year'])) {
+                    $query->whereYear('awards.award_date', $filters['year']);
+                }
+
+                if (!empty($filters['faculty'])) {
+                    $query->where('faculties.id', $filters['faculty']);
+                }
+
+                $data = $query->groupBy('faculties.id', 'faculties.faculty_code', 'faculties.faculty_name', 'exhibition_results.ExhibitionResultID', 'exhibition_results.Description', 'awards.award_name')
                     ->orderBy('faculties.faculty_code')
                     ->orderBy('count', 'desc')
                     ->get();
                 break;
             case 'exhibition':
-                $data = Award::leftJoin('competitions', 'awards.competition_id', '=', 'competitions.id')
+                $data = $applyFilters(Award::query())
+                    ->leftJoin('competitions', 'awards.competition_id', '=', 'competitions.id')
                     ->selectRaw('COALESCE(competitions.exhibition_level, "No Competition") as exhibition_level, COUNT(*) as count')
                     ->groupBy('competitions.exhibition_level')
                     ->orderBy('count', 'desc')
                     ->get();
                 break;
             case 'results':
-                $data = Award::join('exhibition_results', 'awards.exhibition_result_id', '=', 'exhibition_results.ExhibitionResultID')
+                $data = $applyFilters(Award::query())
+                    ->join('exhibition_results', 'awards.exhibition_result_id', '=', 'exhibition_results.ExhibitionResultID')
                     ->selectRaw('exhibition_results.Description as description, COUNT(awards.id) as count')
                     ->groupBy('exhibition_results.ExhibitionResultID', 'exhibition_results.Description')
                     ->orderBy('count', 'desc')
@@ -742,6 +851,7 @@ class AwardController extends Controller
             default:
                 $data = [
                     'levels' => Award::selectRaw('award_name, COUNT(*) as count')
+                        ->whereNotNull('award_name')
                         ->groupBy('award_name')
                         ->orderBy('count', 'desc')
                         ->get(),

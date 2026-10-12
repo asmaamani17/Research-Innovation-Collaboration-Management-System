@@ -1,223 +1,349 @@
 @extends('layouts.admin')
 
-@section('title', 'Super Admin Dashboard')
+@section('title', 'Research, Innovation & Collaboration Dashboard')
 
 @section('content')
 <!-- Page Header -->
 <header class="px-8 py-8 flex flex-wrap items-center justify-between gap-4">
     <div class="flex flex-col">
         <h2 class="text-text-main text-3xl font-black leading-tight tracking-tight">
-            Super Admin Dashboard
+            Research, Innovation and Collaboration Management Dashboard
         </h2>
         <p class="text-divider-subtle font-medium text-sm mt-1">
-            Overview of all modules and activities across the system.
+            Comprehensive analytics overview covering Awards, KPI Performance, Intellectual Property (IP), Community & STEM Industry, and TRL Products.
         </p>
     </div>
 </header>
 
 <div class="px-8 pb-8">
-    <!-- Summary Cards -->
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        <div class="bg-white border border-divider-subtle/30 rounded-xl p-6 shadow-sm flex items-center justify-between group hover:border-primary transition-colors">
-            <div class="space-y-2">
-                <p class="text-sm font-medium text-divider-subtle">Total Awards</p>
-                <p class="text-3xl font-bold text-text-main">{{ number_format($totalAwards) }}</p>
+    <!-- Top Filter Bar -->
+    <form method="GET" action="{{ route('superadmin.dashboard') }}" class="bg-white border border-divider-subtle/30 rounded-xl p-6 mb-8 shadow-sm">
+        <div class="flex items-center justify-between mb-2">
+            @if($selectedYear || $selectedFaculty || $selectedModule)
+                <span class="text-xs font-semibold text-primary bg-primary/10 px-3 py-1 rounded-full flex items-center gap-1">
+                    <span class="material-symbols-outlined text-sm">filter_alt</span> Filters Applied
+                </span>
+            @endif
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <!-- Year Filter -->
+            <div>
+                <label class="block text-xs font-semibold text-text-main mb-1.5 uppercase tracking-wider">Year</label>
+                <select name="year" id="filterYear"
+                    class="w-full h-11 px-4 bg-background-light border-none rounded-lg text-sm text-text-main focus:ring-2 focus:ring-primary">
+                    <option value="">All Years</option>
+                    @foreach($availableYears as $yearOpt)
+                        <option value="{{ $yearOpt }}" {{ (string)$selectedYear === (string)$yearOpt ? 'selected' : '' }}>
+                            {{ $yearOpt }}
+                        </option>
+                    @endforeach
+                </select>
             </div>
-            <div class="bg-primary/10 p-3 rounded-lg text-primary">
-                <span class="material-symbols-outlined text-2xl">emoji_events</span>
+
+            <!-- Faculty Filter -->
+            <div>
+                <label class="block text-xs font-semibold text-text-main mb-1.5 uppercase tracking-wider">Faculty</label>
+                <select name="faculty" id="filterFaculty"
+                    class="w-full h-11 px-4 bg-background-light border-none rounded-lg text-sm text-text-main focus:ring-2 focus:ring-primary">
+                    <option value="">All Faculties</option>
+                    @foreach($faculties as $fac)
+                        <option value="{{ $fac->id }}" {{ (string)$selectedFaculty === (string)$fac->id ? 'selected' : '' }}>
+                            {{ $fac->faculty_name }} ({{ $fac->faculty_code }})
+                        </option>
+                    @endforeach
+                </select>
+            </div>
+
+            <!-- Module Filter -->
+            <div>
+                <label class="block text-xs font-semibold text-text-main mb-1.5 uppercase tracking-wider">Module Focus</label>
+                <select name="module" id="filterModule"
+                    class="w-full h-11 px-4 bg-background-light border-none rounded-lg text-sm text-text-main focus:ring-2 focus:ring-primary">
+                    <option value="">All Modules</option>
+                    <option value="awards" {{ $selectedModule === 'awards' ? 'selected' : '' }}>Awards</option>
+                    <option value="kpi" {{ $selectedModule === 'kpi' ? 'selected' : '' }}>KPI Performance</option>
+                    <option value="ip" {{ $selectedModule === 'ip' ? 'selected' : '' }}>Intellectual Property (IP)</option>
+                    <option value="community" {{ $selectedModule === 'community' ? 'selected' : '' }}>Community, STEM & Industry</option>
+                    <option value="products" {{ $selectedModule === 'products' ? 'selected' : '' }}>TRL Products</option>
+                </select>
+            </div>
+        </div>
+        <div class="mt-4 flex items-center gap-3">
+            <button type="submit"
+                class="px-6 py-2.5 bg-primary text-white text-sm font-semibold rounded-lg hover:bg-primary/90 transition-colors flex items-center gap-2 shadow-sm">
+                <span class="material-symbols-outlined text-sm">filter_alt</span> Apply Filters
+            </button>
+            <a href="{{ route('superadmin.dashboard') }}"
+                class="px-6 py-2.5 border border-divider-subtle text-text-main text-sm font-medium rounded-lg hover:bg-background-light transition-colors flex items-center gap-2">
+                <span class="material-symbols-outlined text-sm">restart_alt</span> Reset Filters
+            </a>
+        </div>
+    </form>
+
+    <!-- Summary Cards Grid -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+        <!-- 1. Awards Summary Card -->
+        <div class="bg-white border border-divider-subtle/30 rounded-xl p-6 shadow-sm flex items-center justify-between group hover:border-primary transition-colors">
+            <div class="space-y-1">
+                <p class="text-xs font-semibold text-divider-subtle uppercase tracking-wider">Awards</p>
+                <p class="text-3xl font-extrabold text-text-main">{{ number_format($totalAwards) }}</p>
+                <p class="text-xs text-primary font-medium flex items-center gap-1">
+                    <span class="material-symbols-outlined text-xs">workspace_premium</span>
+                    Exhibitions & Competitions
+                </p>
+            </div>
+            <div class="bg-amber-50 p-3.5 rounded-xl text-amber-600 border border-amber-200/50">
+                <span class="material-symbols-outlined text-3xl">emoji_events</span>
             </div>
         </div>
 
+        <!-- 2. KPI Achievement Card -->
         <div class="bg-white border border-divider-subtle/30 rounded-xl p-6 shadow-sm flex items-center justify-between group hover:border-primary transition-colors">
-            <div class="space-y-2">
-                <p class="text-sm font-medium text-divider-subtle">Total TRL Products</p>
-                <p class="text-3xl font-bold text-text-main">{{ number_format($totalProducts) }}</p>
+            <div class="space-y-1">
+                <p class="text-xs font-semibold text-divider-subtle uppercase tracking-wider">Avg KPI Achievement</p>
+                <p class="text-3xl font-extrabold text-text-main">{{ $avgKpiAchievement }}%</p>
+                <p class="text-xs text-purple-600 font-medium flex items-center gap-1">
+                    <span class="material-symbols-outlined text-xs">auto_graph</span>
+                    {{ $totalKpiStrategies }} Active Strategies
+                </p>
             </div>
-            <div class="bg-green-100 p-3 rounded-lg text-green-600">
-                <span class="material-symbols-outlined text-2xl">inventory_2</span>
+            <div class="bg-purple-50 p-3.5 rounded-xl text-purple-600 border border-purple-200/50">
+                <span class="material-symbols-outlined text-3xl">trending_up</span>
             </div>
         </div>
 
+        <!-- 3. Intellectual Property (IP) Card -->
         <div class="bg-white border border-divider-subtle/30 rounded-xl p-6 shadow-sm flex items-center justify-between group hover:border-primary transition-colors">
-            <div class="space-y-2">
-                <p class="text-sm font-medium text-divider-subtle">Total Projects</p>
-                <p class="text-3xl font-bold text-text-main">{{ number_format($totalProjects) }}</p>
+            <div class="space-y-1">
+                <p class="text-xs font-semibold text-divider-subtle uppercase tracking-wider">Intellectual Property (IP)</p>
+                <p class="text-3xl font-extrabold text-text-main">{{ number_format($totalIp) }}</p>
+                <p class="text-xs text-blue-600 font-medium flex items-center gap-1">
+                    <span class="material-symbols-outlined text-xs">verified</span>
+                    Patents, Copyrights & IPR
+                </p>
             </div>
-            <div class="bg-purple-100 p-3 rounded-lg text-purple-600">
-                <span class="material-symbols-outlined text-2xl">biotech</span>
+            <div class="bg-blue-50 p-3.5 rounded-xl text-blue-600 border border-blue-200/50">
+                <span class="material-symbols-outlined text-3xl">gavel</span>
             </div>
         </div>
 
+        <!-- 4. Community, STEM & Industry Card -->
         <div class="bg-white border border-divider-subtle/30 rounded-xl p-6 shadow-sm flex items-center justify-between group hover:border-primary transition-colors">
-            <div class="space-y-2">
-                <p class="text-sm font-medium text-divider-subtle">Total Staff</p>
-                <p class="text-3xl font-bold text-text-main">{{ number_format($totalStaff) }}</p>
+            <div class="space-y-1">
+                <p class="text-xs font-semibold text-divider-subtle uppercase tracking-wider">Community & STEM Industry</p>
+                <p class="text-3xl font-extrabold text-text-main">{{ number_format($totalStemPrograms) }}</p>
+                <p class="text-xs text-teal-600 font-medium flex items-center gap-1">
+                    <span class="material-symbols-outlined text-xs">handshake</span>
+                    Community & Industry Outreach
+                </p>
             </div>
-            <div class="bg-blue-100 p-3 rounded-lg text-blue-600">
-                <span class="material-symbols-outlined text-2xl">people</span>
+            <div class="bg-teal-50 p-3.5 rounded-xl text-teal-600 border border-teal-200/50">
+                <span class="material-symbols-outlined text-3xl">groups_3</span>
             </div>
         </div>
 
+        <!-- 5. TRL Products Card -->
         <div class="bg-white border border-divider-subtle/30 rounded-xl p-6 shadow-sm flex items-center justify-between group hover:border-primary transition-colors">
-            <div class="space-y-2">
-                <p class="text-sm font-medium text-divider-subtle">Total Competitions</p>
-                <p class="text-3xl font-bold text-text-main">{{ number_format($totalCompetitions) }}</p>
+            <div class="space-y-1">
+                <p class="text-xs font-semibold text-divider-subtle uppercase tracking-wider">TRL Products</p>
+                <p class="text-3xl font-extrabold text-text-main">{{ number_format($totalProducts) }}</p>
+                <p class="text-xs text-emerald-600 font-medium flex items-center gap-1">
+                    <span class="material-symbols-outlined text-xs">precision_manufacturing</span>
+                    Commercial & Readiness Levels
+                </p>
             </div>
-            <div class="bg-orange-100 p-3 rounded-lg text-orange-600">
-                <span class="material-symbols-outlined text-2xl">event</span>
+            <div class="bg-emerald-50 p-3.5 rounded-xl text-emerald-600 border border-emerald-200/50">
+                <span class="material-symbols-outlined text-3xl">inventory_2</span>
             </div>
         </div>
 
+        <!-- 6. Projects & Staff Card -->
         <div class="bg-white border border-divider-subtle/30 rounded-xl p-6 shadow-sm flex items-center justify-between group hover:border-primary transition-colors">
-            <div class="space-y-2">
-                <p class="text-sm font-medium text-divider-subtle">KPI Strategies</p>
-                <p class="text-3xl font-bold text-text-main">{{ number_format($totalKpiStrategies) }}</p>
+            <div class="space-y-1">
+                <p class="text-xs font-semibold text-divider-subtle uppercase tracking-wider">Research Projects & Staff</p>
+                <p class="text-3xl font-extrabold text-text-main">{{ number_format($totalProjects) }} <span class="text-sm font-normal text-divider-subtle">Projects</span></p>
+                <p class="text-xs text-indigo-600 font-medium flex items-center gap-1">
+                    <span class="material-symbols-outlined text-xs">badge</span>
+                    {{ number_format($totalStaff) }} Registered Researchers
+                </p>
             </div>
-            <div class="bg-indigo-100 p-3 rounded-lg text-indigo-600">
-                <span class="material-symbols-outlined text-2xl">assessment</span>
+            <div class="bg-indigo-50 p-3.5 rounded-xl text-indigo-600 border border-indigo-200/50">
+                <span class="material-symbols-outlined text-3xl">biotech</span>
             </div>
         </div>
     </div>
 
-    <!-- Charts Section -->
-    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-8">
-        <!-- Awards by Level Chart -->
+    <!-- Charts Grid Section -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+        <!-- 1. Awards by Level Chart -->
         <div class="bg-white border border-divider-subtle/30 rounded-xl p-6 shadow-sm">
-            <div class="flex items-center justify-between mb-6">
-                <h3 class="text-lg font-bold text-text-main">Awards by Level</h3>
-                <button onclick="refreshChart('awardsByLevel')" class="text-sm font-semibold text-primary hover:text-primary/80">
-                    <span class="material-symbols-outlined text-sm">refresh</span>
-                </button>
+            <div class="flex items-center justify-between mb-4">
+                <div class="flex items-center gap-2">
+                    <span class="material-symbols-outlined text-amber-500">military_tech</span>
+                    <h3 class="text-base font-bold text-text-main">Awards Level Distribution</h3>
+                </div>
+                <span class="text-xs text-divider-subtle font-medium">Filtered</span>
             </div>
             <div class="h-64">
                 <canvas id="awardsByLevelChart"></canvas>
             </div>
         </div>
 
-        <!-- Awards by Year Chart -->
+        <!-- 2. IP Records by Type Chart -->
         <div class="bg-white border border-divider-subtle/30 rounded-xl p-6 shadow-sm">
-            <div class="flex items-center justify-between mb-6">
-                <h3 class="text-lg font-bold text-text-main">Awards by Year</h3>
-                <button onclick="refreshChart('awardsByYear')" class="text-sm font-semibold text-primary hover:text-primary/80">
-                    <span class="material-symbols-outlined text-sm">refresh</span>
-                </button>
+            <div class="flex items-center justify-between mb-4">
+                <div class="flex items-center gap-2">
+                    <span class="material-symbols-outlined text-blue-600">copyright</span>
+                    <h3 class="text-base font-bold text-text-main">Intellectual Property (IP) by Type</h3>
+                </div>
+                <span class="text-xs text-divider-subtle font-medium">Filtered</span>
             </div>
             <div class="h-64">
-                <canvas id="awardsByYearChart"></canvas>
+                <canvas id="ipByTypeChart"></canvas>
             </div>
         </div>
 
-        <!-- Products by Status Chart -->
+        <!-- 3. Community & STEM Industry Classifications -->
         <div class="bg-white border border-divider-subtle/30 rounded-xl p-6 shadow-sm">
-            <div class="flex items-center justify-between mb-6">
-                <h3 class="text-lg font-bold text-text-main">TRL Products by Status</h3>
-                <button onclick="refreshChart('productsByStatus')" class="text-sm font-semibold text-primary hover:text-primary/80">
-                    <span class="material-symbols-outlined text-sm">refresh</span>
-                </button>
+            <div class="flex items-center justify-between mb-4">
+                <div class="flex items-center gap-2">
+                    <span class="material-symbols-outlined text-teal-600">diversity_3</span>
+                    <h3 class="text-base font-bold text-text-main">Community, STEM & Industry Outreach</h3>
+                </div>
+                <span class="text-xs text-divider-subtle font-medium">Filtered</span>
+            </div>
+            <div class="h-64">
+                <canvas id="stemByClassificationChart"></canvas>
+            </div>
+        </div>
+
+        <!-- 4. TRL Products Status Chart -->
+        <div class="bg-white border border-divider-subtle/30 rounded-xl p-6 shadow-sm">
+            <div class="flex items-center justify-between mb-4">
+                <div class="flex items-center gap-2">
+                    <span class="material-symbols-outlined text-emerald-600">published_with_changes</span>
+                    <h3 class="text-base font-bold text-text-main">TRL Products Status</h3>
+                </div>
+                <span class="text-xs text-divider-subtle font-medium">Filtered</span>
             </div>
             <div class="h-64">
                 <canvas id="productsByStatusChart"></canvas>
             </div>
         </div>
 
-        <!-- Products by Category Chart -->
-        <div class="bg-white border border-divider-subtle/30 rounded-xl p-6 shadow-sm">
-            <div class="flex items-center justify-between mb-6">
-                <h3 class="text-lg font-bold text-text-main">Products by Category</h3>
-                <button onclick="refreshChart('productsByCategory')" class="text-sm font-semibold text-primary hover:text-primary/80">
-                    <span class="material-symbols-outlined text-sm">refresh</span>
-                </button>
-            </div>
-            <div class="h-64">
-                <canvas id="productsByCategoryChart"></canvas>
-            </div>
-        </div>
-
-        <!-- KPI Achievement by Year Chart -->
-        <div class="bg-white border border-divider-subtle/30 rounded-xl p-6 shadow-sm">
-            <div class="flex items-center justify-between mb-6">
-                <h3 class="text-lg font-bold text-text-main">KPI Achievement by Year</h3>
-                <button onclick="refreshChart('kpiByYear')" class="text-sm font-semibold text-primary hover:text-primary/80">
-                    <span class="material-symbols-outlined text-sm">refresh</span>
-                </button>
+        <!-- 5. KPI Achievement Trend Chart -->
+        <div class="bg-white border border-divider-subtle/30 rounded-xl p-6 shadow-sm lg:col-span-2">
+            <div class="flex items-center justify-between mb-4">
+                <div class="flex items-center gap-2">
+                    <span class="material-symbols-outlined text-purple-600">monitoring</span>
+                    <h3 class="text-base font-bold text-text-main">KPI Average Achievement Trend % by Target Year</h3>
+                </div>
+                <span class="text-xs text-divider-subtle font-medium">Annual Performance</span>
             </div>
             <div class="h-64">
                 <canvas id="kpiByYearChart"></canvas>
             </div>
         </div>
-
-        <!-- Staff by Faculty Chart -->
-        <div class="bg-white border border-divider-subtle/30 rounded-xl p-6 shadow-sm">
-            <div class="flex items-center justify-between mb-6">
-                <h3 class="text-lg font-bold text-text-main">Staff by Faculty</h3>
-                <button onclick="refreshChart('staffByFaculty')" class="text-sm font-semibold text-primary hover:text-primary/80">
-                    <span class="material-symbols-outlined text-sm">refresh</span>
-                </button>
-            </div>
-            <div class="h-64">
-                <canvas id="staffByFacultyChart"></canvas>
-            </div>
-        </div>
     </div>
 
-    <!-- Recent Activity Section -->
-    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-8">
-        <!-- Recent Awards -->
+    <!-- Recent Activity Panels (4-Grid Overview) -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <!-- Panel 1: Recent Awards -->
         <div class="bg-white border border-divider-subtle/30 rounded-xl p-6 shadow-sm">
-            <div class="flex items-center justify-between mb-6">
-                <h3 class="text-lg font-bold text-text-main">Recent Awards</h3>
-                <a href="{{ route('admin.awards') }}" class="text-sm font-semibold text-primary hover:text-primary/80">
-                    View All
-                </a>
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="text-base font-bold text-text-main flex items-center gap-2">
+                    <span class="material-symbols-outlined text-amber-500">emoji_events</span> Recent Awards
+                </h3>
+                <a href="{{ route('admin.dashboard') }}" class="text-xs font-semibold text-primary hover:underline">View All &rarr;</a>
             </div>
             <div class="space-y-3">
                 @forelse($recentAwards as $award)
-                <div class="flex items-center justify-between p-3 bg-background-light rounded-lg border border-divider-subtle/20">
-                    <div class="flex items-center gap-3">
-                        <div class="bg-primary/10 p-2 rounded-lg">
-                            <span class="material-symbols-outlined text-primary text-lg">emoji_events</span>
-                        </div>
-                        <div>
-                            <p class="font-medium text-text-main">{{ $award->award_name }}</p>
-                            <p class="text-sm text-divider-subtle">{{ $award->award_level }}</p>
-                        </div>
+                <div class="p-3 bg-background-light rounded-lg border border-divider-subtle/20 flex items-center justify-between">
+                    <div class="truncate max-w-xs">
+                        <p class="font-bold text-text-main text-sm truncate">{{ $award->award_name }}</p>
+                        <p class="text-xs text-divider-subtle">{{ $award->staff->staff_name ?? 'Researcher' }} • {{ $award->award_level }}</p>
                     </div>
-                    <div class="text-right">
-                        <p class="text-sm text-divider-subtle">{{ $award->award_date ? $award->award_date->format('M d, Y') : 'N/A' }}</p>
-                    </div>
+                    <span class="text-xs bg-white px-2 py-1 rounded border border-divider-subtle/30 text-divider-subtle">
+                        {{ $award->award_date ? $award->award_date->format('Y-m-d') : 'N/A' }}
+                    </span>
                 </div>
                 @empty
-                <p class="text-divider-subtle text-center py-4">No recent awards</p>
+                <p class="text-divider-subtle text-center text-xs py-4">No recent awards matching filters</p>
                 @endforelse
             </div>
         </div>
 
-        <!-- Recent Projects -->
+        <!-- Panel 2: Recent IP Filings -->
         <div class="bg-white border border-divider-subtle/30 rounded-xl p-6 shadow-sm">
-            <div class="flex items-center justify-between mb-6">
-                <h3 class="text-lg font-bold text-text-main">Recent Projects</h3>
-                <a href="{{ route('admin.projects.index') }}" class="text-sm font-semibold text-primary hover:text-primary/80">
-                    View All
-                </a>
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="text-base font-bold text-text-main flex items-center gap-2">
+                    <span class="material-symbols-outlined text-blue-600">gavel</span> Recent Intellectual Property
+                </h3>
+                <a href="{{ route('admin.ip.dashboard') }}" class="text-xs font-semibold text-primary hover:underline">View All &rarr;</a>
             </div>
             <div class="space-y-3">
-                @forelse($recentProjects as $project)
-                <div class="flex items-center justify-between p-3 bg-background-light rounded-lg border border-divider-subtle/20">
-                    <div class="flex items-center gap-3">
-                        <div class="bg-purple-100 p-2 rounded-lg">
-                            <span class="material-symbols-outlined text-purple-600 text-lg">biotech</span>
-                        </div>
-                        <div>
-                            <p class="font-medium text-text-main">{{ $project->project_title }}</p>
-                            <p class="text-sm text-divider-subtle">{{ $project->grant_no }}</p>
-                        </div>
+                @forelse($recentIp as $ip)
+                <div class="p-3 bg-background-light rounded-lg border border-divider-subtle/20 flex items-center justify-between">
+                    <div class="truncate max-w-xs">
+                        <p class="font-bold text-text-main text-sm truncate">{{ $ip->nama_produk ?? $ip->title ?? 'IP Record' }}</p>
+                        <p class="text-xs text-divider-subtle">{{ $ip->jenis_ipr ?? $ip->type ?? 'IPR' }} • {{ $ip->fakulti ?? 'Faculty' }}</p>
                     </div>
-                    <div class="text-right">
-                        <p class="text-sm text-divider-subtle">{{ $project->created_at ? $project->created_at->format('M d, Y') : 'N/A' }}</p>
-                    </div>
+                    <span class="text-xs bg-white px-2 py-1 rounded border border-divider-subtle/30 text-divider-subtle">
+                        {{ $ip->tarikh_difailkan ? \Carbon\Carbon::parse($ip->tarikh_difailkan)->format('Y-m-d') : ($ip->tahun ?? 'N/A') }}
+                    </span>
                 </div>
                 @empty
-                <p class="text-divider-subtle text-center py-4">No recent projects</p>
+                <p class="text-divider-subtle text-center text-xs py-4">No recent IP records matching filters</p>
+                @endforelse
+            </div>
+        </div>
+
+        <!-- Panel 3: Recent Community & STEM Programs -->
+        <div class="bg-white border border-divider-subtle/30 rounded-xl p-6 shadow-sm">
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="text-base font-bold text-text-main flex items-center gap-2">
+                    <span class="material-symbols-outlined text-teal-600">groups</span> Recent STEM & Community Programs
+                </h3>
+                <a href="{{ route('admin.stem.dashboard') }}" class="text-xs font-semibold text-primary hover:underline">View All &rarr;</a>
+            </div>
+            <div class="space-y-3">
+                @forelse($recentStemPrograms as $prog)
+                <div class="p-3 bg-background-light rounded-lg border border-divider-subtle/20 flex items-center justify-between">
+                    <div class="truncate max-w-xs">
+                        <p class="font-bold text-text-main text-sm truncate">{{ $prog->program }}</p>
+                        <p class="text-xs text-divider-subtle">{{ $prog->classification }} • {{ $prog->faculty ?? 'UTeM' }}</p>
+                    </div>
+                    <span class="text-xs bg-white px-2 py-1 rounded border border-divider-subtle/30 text-divider-subtle">
+                        {{ $prog->start_date ? \Carbon\Carbon::parse($prog->start_date)->format('Y-m-d') : 'N/A' }}
+                    </span>
+                </div>
+                @empty
+                <p class="text-divider-subtle text-center text-xs py-4">No recent programs matching filters</p>
+                @endforelse
+            </div>
+        </div>
+
+        <!-- Panel 4: Recent TRL Products -->
+        <div class="bg-white border border-divider-subtle/30 rounded-xl p-6 shadow-sm">
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="text-base font-bold text-text-main flex items-center gap-2">
+                    <span class="material-symbols-outlined text-emerald-600">inventory_2</span> Recent TRL Products
+                </h3>
+                <a href="{{ route('admin.products.index') }}" class="text-xs font-semibold text-primary hover:underline">View All &rarr;</a>
+            </div>
+            <div class="space-y-3">
+                @forelse($recentTrlProducts as $prod)
+                <div class="p-3 bg-background-light rounded-lg border border-divider-subtle/20 flex items-center justify-between">
+                    <div class="truncate max-w-xs">
+                        <p class="font-bold text-text-main text-sm truncate">{{ $prod->product }}</p>
+                        <p class="text-xs text-divider-subtle">TRL {{ $prod->trl_level }} • {{ $prod->status ?? 'Active' }}</p>
+                    </div>
+                    <span class="text-xs bg-white px-2 py-1 rounded border border-divider-subtle/30 text-divider-subtle">
+                        {{ $prod->product_year ?? 'N/A' }}
+                    </span>
+                </div>
+                @empty
+                <p class="text-divider-subtle text-center text-xs py-4">No recent TRL products matching filters</p>
                 @endforelse
             </div>
         </div>
@@ -228,255 +354,154 @@
 @push('scripts')
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <script>
-    const chartApiUrl = "{{ route('superadmin.dashboard.data') }}";
-    let awardsByLevelChart, awardsByYearChart, productsByStatusChart, productsByCategoryChart, kpiByYearChart, staffByFacultyChart;
+    const chartApiUrl = "{{ route('superadmin.dashboard.data') }}?year={{ $selectedYear }}&faculty={{ $selectedFaculty }}";
+    
+    let awardsChart, ipChart, stemChart, trlChart, kpiChart;
 
-    // Initialize all charts
     async function initCharts() {
-        await Promise.all([
-            loadAwardsByLevelChart(),
-            loadAwardsByYearChart(),
-            loadProductsByStatusChart(),
-            loadProductsByCategoryChart(),
-            loadKpiByYearChart(),
-            loadStaffByFacultyChart()
-        ]);
-    }
+        try {
+            const res = await fetch(chartApiUrl);
+            const data = await res.json();
 
-    // Load Awards by Level Chart (Doughnut)
-    async function loadAwardsByLevelChart() {
-        const response = await fetch(chartApiUrl);
-        const data = await response.json();
-        
-        const ctx = document.getElementById('awardsByLevelChart').getContext('2d');
-        
-        if (awardsByLevelChart) awardsByLevelChart.destroy();
-        
-        awardsByLevelChart = new Chart(ctx, {
-            type: 'doughnut',
-            data: {
-                labels: data.awardsByLevel.map(d => d.level),
-                datasets: [{
-                    data: data.awardsByLevel.map(d => d.count),
-                    backgroundColor: ['#184290', '#3B82F6', '#8B5CF6', '#10B981', '#F59E0B', '#EF4444'],
-                    borderWidth: 2,
-                    borderColor: '#ffffff'
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                    legend: {
-                        position: 'right',
-                        labels: { boxWidth: 12 }
+            // 1. Awards Level Chart
+            const ctxAwards = document.getElementById('awardsByLevelChart').getContext('2d');
+            if (awardsChart) awardsChart.destroy();
+
+            const levelColorMap = {
+                'Gold': '#F59E0B',
+                'Silver': '#94A3B8',
+                'Bronze': '#D97706',
+                'Platinum': '#06B6D4',
+                'Special': '#8B5CF6',
+                'Others': '#64748B',
+                'Other': '#64748B'
+            };
+            const defaultPalette = ['#F59E0B', '#94A3B8', '#D97706', '#06B6D4', '#8B5CF6', '#64748B', '#EF4444', '#3B82F6'];
+
+            const awardLabels = data.awardsByLevel.map(d => d.level);
+            const awardCounts = data.awardsByLevel.map(d => d.count);
+            const awardColors = awardLabels.map((lbl, idx) => levelColorMap[lbl] || defaultPalette[idx % defaultPalette.length]);
+
+            awardsChart = new Chart(ctxAwards, {
+                type: 'doughnut',
+                data: {
+                    labels: awardLabels,
+                    datasets: [{
+                        data: awardCounts,
+                        backgroundColor: awardColors,
+                        borderWidth: 2,
+                        borderColor: '#ffffff'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: { boxWidth: 12, font: { size: 11 } }
+                        }
                     }
                 }
-            }
-        });
-    }
+            });
 
-    // Load Awards by Year Chart (Bar)
-    async function loadAwardsByYearChart() {
-        const response = await fetch(chartApiUrl);
-        const data = await response.json();
-        
-        const ctx = document.getElementById('awardsByYearChart').getContext('2d');
-        
-        if (awardsByYearChart) awardsByYearChart.destroy();
-        
-        awardsByYearChart = new Chart(ctx, {
-            type: 'bar',
-            data: {
-                labels: data.awardsByYear.map(d => d.year),
-                datasets: [{
-                    label: 'Awards',
-                    data: data.awardsByYear.map(d => d.count),
-                    backgroundColor: '#184290',
-                    borderRadius: 6
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                    legend: { display: false }
+            // 2. IP by Type Chart
+            const ctxIp = document.getElementById('ipByTypeChart').getContext('2d');
+            if (ipChart) ipChart.destroy();
+            ipChart = new Chart(ctxIp, {
+                type: 'pie',
+                data: {
+                    labels: data.ipByType.map(d => d.type_name),
+                    datasets: [{
+                        data: data.ipByType.map(d => d.count),
+                        backgroundColor: ['#2563EB', '#7C3AED', '#059669', '#D97706', '#DC2626', '#475569'],
+                        borderWidth: 2,
+                        borderColor: '#ffffff'
+                    }]
                 },
-                scales: {
-                    y: { beginAtZero: true }
-                }
-            }
-        });
-    }
-
-    // Load Products by Status Chart (Pie)
-    async function loadProductsByStatusChart() {
-        const response = await fetch(chartApiUrl);
-        const data = await response.json();
-        
-        const ctx = document.getElementById('productsByStatusChart').getContext('2d');
-        
-        if (productsByStatusChart) productsByStatusChart.destroy();
-        
-        productsByStatusChart = new Chart(ctx, {
-            type: 'pie',
-            data: {
-                labels: data.productsByStatus.map(d => d.status),
-                datasets: [{
-                    data: data.productsByStatus.map(d => d.count),
-                    backgroundColor: ['#3B82F6', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6'],
-                    borderWidth: 2,
-                    borderColor: '#ffffff'
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                    legend: {
-                        position: 'right',
-                        labels: { boxWidth: 12 }
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: { boxWidth: 18, font: { size: 11 } }
+                        }
                     }
                 }
-            }
-        });
-    }
+            });
 
-    // Load Products by Category Chart (Horizontal Bar)
-    async function loadProductsByCategoryChart() {
-        const response = await fetch(chartApiUrl);
-        const data = await response.json();
-        
-        const ctx = document.getElementById('productsByCategoryChart').getContext('2d');
-        
-        if (productsByCategoryChart) productsByCategoryChart.destroy();
-        
-        productsByCategoryChart = new Chart(ctx, {
-            type: 'bar',
-            data: {
-                labels: data.productsByCategory.map(d => d.category),
-                datasets: [{
-                    label: 'Products',
-                    data: data.productsByCategory.map(d => d.count),
-                    backgroundColor: '#10B981',
-                    borderRadius: 6
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                indexAxis: 'y',
-                plugins: {
-                    legend: { display: false }
+            // 3. STEM Classification Chart
+            const ctxStem = document.getElementById('stemByClassificationChart').getContext('2d');
+            if (stemChart) stemChart.destroy();
+            stemChart = new Chart(ctxStem, {
+                type: 'bar',
+                data: {
+                    labels: data.stemByClassification.map(d => d.classification),
+                    datasets: [{
+                        label: 'Programs',
+                        data: data.stemByClassification.map(d => d.count),
+                        backgroundColor: '#0D9488',
+                        borderRadius: 6
+                    }]
                 },
-                scales: {
-                    x: { beginAtZero: true }
-                }
-            }
-        });
-    }
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } }
+            });
 
-    // Load KPI Achievement by Year Chart (Line)
-    async function loadKpiByYearChart() {
-        const response = await fetch(chartApiUrl);
-        const data = await response.json();
-        
-        const ctx = document.getElementById('kpiByYearChart').getContext('2d');
-        
-        if (kpiByYearChart) kpiByYearChart.destroy();
-        
-        kpiByYearChart = new Chart(ctx, {
-            type: 'line',
-            data: {
-                labels: data.kpiByYear.map(d => d.year),
-                datasets: [{
-                    label: 'Average Achievement %',
-                    data: data.kpiByYear.map(d => d.achievement),
-                    borderColor: '#8B5CF6',
-                    backgroundColor: 'rgba(139, 92, 246, 0.1)',
-                    fill: true,
-                    tension: 0.4,
-                    borderRadius: 6
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                    legend: { display: false }
+            // 4. Products Status Chart
+            const ctxTrl = document.getElementById('productsByStatusChart').getContext('2d');
+            if (trlChart) trlChart.destroy();
+            trlChart = new Chart(ctxTrl, {
+                type: 'doughnut',
+                data: {
+                    labels: data.productsByStatus.map(d => d.status),
+                    datasets: [{
+                        data: data.productsByStatus.map(d => d.count),
+                        backgroundColor: ['#10B981', '#3B82F6', '#F59E0B', '#EF4444', '#94A3B8'],
+                        borderWidth: 2,
+                        borderColor: '#ffffff'
+                    }]
                 },
-                scales: {
-                    y: {
-                        beginAtZero: true,
-                        max: 100
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: { boxWidth: 12, font: { size: 11 } }
+                        }
                     }
                 }
-            }
-        });
-    }
+            });
 
-    // Load Staff by Faculty Chart (Horizontal Bar)
-    async function loadStaffByFacultyChart() {
-        const response = await fetch(chartApiUrl);
-        const data = await response.json();
-        
-        const ctx = document.getElementById('staffByFacultyChart').getContext('2d');
-        
-        if (staffByFacultyChart) staffByFacultyChart.destroy();
-        
-        staffByFacultyChart = new Chart(ctx, {
-            type: 'bar',
-            data: {
-                labels: data.staffByFaculty.map(d => d.faculty),
-                datasets: [{
-                    label: 'Staff',
-                    data: data.staffByFaculty.map(d => d.count),
-                    backgroundColor: '#F59E0B',
-                    borderRadius: 6
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                indexAxis: 'y',
-                plugins: {
-                    legend: { display: false }
+            // 5. KPI Achievement Chart
+            const ctxKpi = document.getElementById('kpiByYearChart').getContext('2d');
+            if (kpiChart) kpiChart.destroy();
+            kpiChart = new Chart(ctxKpi, {
+                type: 'line',
+                data: {
+                    labels: data.kpiByYear.map(d => d.year),
+                    datasets: [{
+                        label: 'Average Achievement %',
+                        data: data.kpiByYear.map(d => d.achievement),
+                        borderColor: '#8B5CF6',
+                        backgroundColor: 'rgba(139, 92, 246, 0.1)',
+                        fill: true,
+                        tension: 0.4
+                    }]
                 },
-                scales: {
-                    x: { beginAtZero: true }
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: { y: { beginAtZero: true, max: 100 } }
                 }
-            }
-        });
-    }
+            });
 
-    // Refresh individual chart
-    function refreshChart(chartName) {
-        switch(chartName) {
-            case 'awardsByLevel':
-                loadAwardsByLevelChart();
-                break;
-            case 'awardsByYear':
-                loadAwardsByYearChart();
-                break;
-            case 'productsByStatus':
-                loadProductsByStatusChart();
-                break;
-            case 'productsByCategory':
-                loadProductsByCategoryChart();
-                break;
-            case 'kpiByYear':
-                loadKpiByYearChart();
-                break;
-            case 'staffByFaculty':
-                loadStaffByFacultyChart();
-                break;
+        } catch (e) {
+            console.error('Error loading dashboard charts:', e);
         }
     }
 
-    // Initialize charts on page load
     document.addEventListener('DOMContentLoaded', initCharts);
-
-    // Auto-refresh every 30 seconds
-    setInterval(initCharts, 30000);
 </script>
 @endpush

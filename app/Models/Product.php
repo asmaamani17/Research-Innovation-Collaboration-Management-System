@@ -11,6 +11,8 @@ class Product extends Model
 {
     use HasFactory;
 
+    protected $table = 'legacy_products_archive';
+
     protected $fillable = [
         'project_id',
         'product_name',

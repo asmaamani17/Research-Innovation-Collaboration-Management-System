@@ -22,41 +22,109 @@ class ReportController extends Controller
      */
     public function index(Request $request)
     {
-        // Get the most recent year with awards
-        $latestYear = Award::whereNotNull('award_date')
-            ->orderBy('award_date', 'desc')
-            ->value(DB::raw('YEAR(award_date)'));
+        // Get available years for dropdown filter
+        $availableYears = Award::whereNotNull('award_date')
+            ->selectRaw('YEAR(award_date) as year')
+            ->distinct()
+            ->orderBy('year', 'desc')
+            ->pluck('year')
+            ->toArray();
 
-        $targetYear = $latestYear ?: date('Y');
+        if (empty($availableYears)) {
+            $availableYears = [(int)date('Y')];
+        }
 
-        // Summary statistics
+        // Get faculties and available award levels for dropdowns
+        $faculties = Faculty::orderBy('faculty_name')->get();
+        $availableLevels = Award::whereNotNull('award_level')
+            ->where('award_level', '!=', '')
+            ->distinct()
+            ->orderBy('award_level')
+            ->pluck('award_level')
+            ->toArray();
+
+        // Active filters
+        $selectedYear = $request->get('year');
+        $selectedFaculty = $request->get('faculty_id') ?? $request->get('faculty');
+        $selectedLevel = $request->get('level') ?? $request->get('award_level');
+
+        $targetYear = $selectedYear ?: ($availableYears[0] ?? date('Y'));
+
+        // Filtered Awards Query
+        $filteredAwardsQuery = Award::with(['staff.faculty', 'project', 'event']);
+
+        if ($selectedYear) {
+            $filteredAwardsQuery->whereYear('award_date', $selectedYear);
+        }
+
+        if ($selectedFaculty) {
+            $filteredAwardsQuery->whereHas('staff', function ($q) use ($selectedFaculty) {
+                $q->where('faculty_id', $selectedFaculty);
+            });
+        }
+
+        if ($selectedLevel) {
+            $filteredAwardsQuery->where('award_level', $selectedLevel);
+        }
+
+        $awardsList = (clone $filteredAwardsQuery)->orderBy('award_date', 'desc')->paginate(15)->withQueryString();
+
+        // Summary statistics based on filters
+        $totalAwards = (clone $filteredAwardsQuery)->count();
+        $staffIds = (clone $filteredAwardsQuery)->whereNotNull('staff_id')->pluck('staff_id')->unique();
+        $projectIds = (clone $filteredAwardsQuery)->whereNotNull('project_id')->pluck('project_id')->unique();
+        $eventIds = (clone $filteredAwardsQuery)->whereNotNull('competition_id')->pluck('competition_id')->unique();
+
         $summary = [
-            'total_awards' => Award::count(),
-            'total_staff' => Staff::count(),
-            'total_projects' => Project::count(),
-            'total_events' => Competition::count(),
+            'total_awards' => $totalAwards,
+            'total_staff' => ($selectedFaculty || $selectedYear || $selectedLevel) ? $staffIds->count() : Staff::count(),
+            'total_projects' => ($selectedFaculty || $selectedYear || $selectedLevel) ? $projectIds->count() : Project::count(),
+            'total_events' => ($selectedFaculty || $selectedYear || $selectedLevel) ? $eventIds->count() : Competition::count(),
             'total_faculties' => Faculty::count(),
             'this_year_awards' => Award::whereYear('award_date', $targetYear)->count(),
             'last_year_awards' => Award::whereYear('award_date', $targetYear - 1)->count(),
         ];
 
-        // Recent activity
-        $recentActivity = Award::with(['staff', 'project', 'event'])
+        // Recent activity matching filters
+        $recentActivity = (clone $filteredAwardsQuery)
             ->orderBy('award_date', 'desc')
             ->limit(10)
             ->get();
 
-        // Top Performing Faculties – using withCount (cleaner and reliable)
-        $topFaculties = Faculty::withCount(['awards' => function ($q) use ($targetYear) {
-            $q->whereYear('award_date', $targetYear);
+        // Top Performing Faculties
+        $topFacultiesQuery = Faculty::query();
+        if ($selectedFaculty) {
+            $topFacultiesQuery->where('id', $selectedFaculty);
+        }
+
+        $topFaculties = $topFacultiesQuery->withCount(['awards' => function ($q) use ($targetYear, $selectedLevel) {
+            if ($targetYear) {
+                $q->whereYear('award_date', $targetYear);
+            }
+            if ($selectedLevel) {
+                $q->where('award_level', $selectedLevel);
+            }
         }])
         ->having('awards_count', '>', 0)
         ->orderBy('awards_count', 'desc')
         ->limit(5)
         ->get();
 
-        // Monthly awards trend – ensure we get all months (including zeros)
-        $rawMonthly = Award::whereYear('award_date', $targetYear)
+        // Monthly awards trend
+        $rawMonthlyQuery = Award::query();
+        if ($targetYear) {
+            $rawMonthlyQuery->whereYear('award_date', $targetYear);
+        }
+        if ($selectedFaculty) {
+            $rawMonthlyQuery->whereHas('staff', function ($q) use ($selectedFaculty) {
+                $q->where('faculty_id', $selectedFaculty);
+            });
+        }
+        if ($selectedLevel) {
+            $rawMonthlyQuery->where('award_level', $selectedLevel);
+        }
+
+        $rawMonthly = $rawMonthlyQuery
             ->select(DB::raw('MONTH(award_date) as month'), DB::raw('count(*) as count'))
             ->groupBy(DB::raw('MONTH(award_date)'))
             ->orderBy('month')
@@ -70,24 +138,38 @@ class ReportController extends Controller
             ];
         });
 
-        // Detailed award records by faculty - check award_name field for award types
-        $detailedRecords = Faculty::select(
+        // Detailed award records by faculty
+        $detailedRecordsQuery = Faculty::select(
             'faculties.id',
             'faculties.faculty_code',
-            DB::raw('COUNT(CASE WHEN LOWER(TRIM(awards.award_name)) LIKE "%gold%" THEN 1 END) as gold_count'),
-            DB::raw('COUNT(CASE WHEN LOWER(TRIM(awards.award_name)) LIKE "%silver%" THEN 1 END) as silver_count'),
-            DB::raw('COUNT(CASE WHEN LOWER(TRIM(awards.award_name)) LIKE "%bronze%" THEN 1 END) as bronze_count'),
-            DB::raw('COUNT(CASE WHEN LOWER(TRIM(awards.award_name)) LIKE "%special%" THEN 1 END) as special_count'),
-            DB::raw('COUNT(CASE WHEN LOWER(TRIM(awards.award_name)) LIKE "%platinum%" THEN 1 END) as platinum_count'),
+            'faculties.faculty_name',
+            DB::raw('COUNT(CASE WHEN LOWER(TRIM(awards.award_name)) LIKE "%gold%" OR LOWER(TRIM(awards.award_level)) LIKE "%gold%" THEN 1 END) as gold_count'),
+            DB::raw('COUNT(CASE WHEN LOWER(TRIM(awards.award_name)) LIKE "%silver%" OR LOWER(TRIM(awards.award_level)) LIKE "%silver%" THEN 1 END) as silver_count'),
+            DB::raw('COUNT(CASE WHEN LOWER(TRIM(awards.award_name)) LIKE "%bronze%" OR LOWER(TRIM(awards.award_level)) LIKE "%bronze%" THEN 1 END) as bronze_count'),
+            DB::raw('COUNT(CASE WHEN LOWER(TRIM(awards.award_name)) LIKE "%special%" OR LOWER(TRIM(awards.award_level)) LIKE "%special%" THEN 1 END) as special_count'),
+            DB::raw('COUNT(CASE WHEN LOWER(TRIM(awards.award_name)) LIKE "%platinum%" OR LOWER(TRIM(awards.award_level)) LIKE "%platinum%" THEN 1 END) as platinum_count'),
             DB::raw('COUNT(awards.id) as total_count'),
             DB::raw('GROUP_CONCAT(DISTINCT awards.award_name) as sample_award_names')
         )
         ->leftJoin('staff', 'faculties.id', '=', 'staff.faculty_id')
-        ->leftJoin('awards', 'staff.id', '=', 'awards.staff_id')
-        ->whereYear('awards.award_date', $targetYear)
-        ->groupBy('faculties.id', 'faculties.faculty_code')
-        ->orderBy('total_count', 'desc')
-        ->get();
+        ->leftJoin('awards', function ($join) use ($targetYear, $selectedLevel) {
+            $join->on('staff.id', '=', 'awards.staff_id');
+            if ($targetYear) {
+                $join->whereYear('awards.award_date', '=', $targetYear);
+            }
+            if ($selectedLevel) {
+                $join->where('awards.award_level', '=', $selectedLevel);
+            }
+        });
+
+        if ($selectedFaculty) {
+            $detailedRecordsQuery->where('faculties.id', $selectedFaculty);
+        }
+
+        $detailedRecords = $detailedRecordsQuery
+            ->groupBy('faculties.id', 'faculties.faculty_code', 'faculties.faculty_name')
+            ->orderBy('total_count', 'desc')
+            ->get();
 
         return view('admin.awards.reports.index', compact(
             'summary',
@@ -95,7 +177,14 @@ class ReportController extends Controller
             'topFaculties',
             'monthlyTrend',
             'detailedRecords',
-            'targetYear'
+            'targetYear',
+            'faculties',
+            'availableYears',
+            'availableLevels',
+            'selectedYear',
+            'selectedFaculty',
+            'selectedLevel',
+            'awardsList'
         ));
     }
 
@@ -394,12 +483,83 @@ class ReportController extends Controller
     }
 
     /**
+     * Export report data to PDF document.
+     */
+    public function exportPdf(Request $request)
+    {
+        $selectedYear = $request->get('year');
+        $selectedFaculty = $request->get('faculty_id') ?? $request->get('faculty');
+        $selectedLevel = $request->get('level') ?? $request->get('award_level');
+
+        $query = Award::with(['staff.faculty', 'project', 'event']);
+
+        if ($selectedYear) {
+            $query->whereYear('award_date', $selectedYear);
+        }
+
+        if ($selectedFaculty) {
+            $query->whereHas('staff', function ($q) use ($selectedFaculty) {
+                $q->where('faculty_id', $selectedFaculty);
+            });
+        }
+
+        if ($selectedLevel) {
+            $query->where('award_level', $selectedLevel);
+        }
+
+        $awards = $query->orderBy('award_date', 'desc')->get();
+
+        $goldCount = 0;
+        $silverCount = 0;
+        $bronzeCount = 0;
+
+        foreach ($awards as $award) {
+            $lvl = strtolower($award->award_level ?? '') . ' ' . strtolower($award->award_name ?? '');
+            if (str_contains($lvl, 'gold')) {
+                $goldCount++;
+            } elseif (str_contains($lvl, 'silver')) {
+                $silverCount++;
+            } elseif (str_contains($lvl, 'bronze')) {
+                $bronzeCount++;
+            }
+        }
+
+        $summary = [
+            'total_awards' => $awards->count(),
+            'gold_count' => $goldCount,
+            'silver_count' => $silverCount,
+            'bronze_count' => $bronzeCount,
+            'unique_staff' => $awards->pluck('staff_id')->filter()->unique()->count(),
+        ];
+
+        $faculty = $selectedFaculty ? Faculty::find($selectedFaculty) : null;
+
+        $filterInfo = [
+            'year' => $selectedYear ?: 'All Years',
+            'faculty' => $faculty ? $faculty->faculty_name : 'All Faculties',
+            'level' => $selectedLevel ?: 'All Levels',
+            'generated_at' => Carbon::now()->format('d M Y, h:i A'),
+        ];
+
+        $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('admin.awards.reports.pdf', compact('awards', 'summary', 'filterInfo'))
+            ->setPaper('a4', 'landscape');
+
+        $filename = "awards_report_" . date('Y-m-d_His') . ".pdf";
+
+        return $pdf->download($filename);
+    }
+
+    /**
      * Export report data to Excel (XLSX).
      */
     public function exportExcel(Request $request)
     {
         $type = $request->get('type', 'summary');
-        $year = $request->get('year', date('Y'));
+        $selectedYear = $request->get('year');
+        if (!$selectedYear) {
+            $selectedYear = Award::whereNotNull('award_date')->selectRaw('YEAR(award_date) as year')->orderBy('year', 'desc')->value('year');
+        }
+        $year = $selectedYear ? (int)$selectedYear : (int)date('Y');
         $filters = $request->except(['type', 'year']);
 
         // Use template export for template type

@@ -11,6 +11,7 @@ Route::get('/reports/event-participation', [ReportController::class, 'eventParti
 
 // Export Routes
 Route::get('/reports/export/csv', [ReportController::class, 'exportCsv'])->name('reports.export.csv');
+Route::get('/reports/export/pdf', [ReportController::class, 'exportPdf'])->name('reports.export.pdf');
 
 // API Routes for Charts
 Route::get('/api/reports/chart-data', [ReportController::class, 'getChartData'])->name('reports.api.chart-data');

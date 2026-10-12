@@ -32,11 +32,11 @@ class Staff extends Model
     }
 
     /**
-     * Get the intellectual properties for the staff.
+     * Get the IP records associated with the staff.
      */
     public function intellectualProperties()
     {
-        return $this->belongsToMany(IntellectualProperty::class, 'ip_staff', 'staff_id', 'ip_id')->withTimestamps();
+        return $this->belongsToMany(IntellectualProperty::class, 'ip_staff', 'staff_id', 'ip_id');
     }
 
     /**

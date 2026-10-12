@@ -76,4 +76,13 @@ class User extends Authenticatable
     {
         return $this->belongsToMany(Module::class, 'user_modules', 'user_id', 'module_id');
     }
+
+    public function hasModule(string $moduleName): bool
+    {
+        if ($this->role === 'superadmin') {
+            return true;
+        }
+
+        return $this->modules->contains('module_name', $moduleName);
+    }
 }

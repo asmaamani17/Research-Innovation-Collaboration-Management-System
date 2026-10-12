@@ -148,7 +148,17 @@ class CompetitionSeeder extends Seeder
             ],
         ];
 
+        $levelMap = [
+            'International' => 1,
+            'Antarabangsa'  => 1,
+            'National'      => 2,
+            'Kebangsaan'    => 2,
+            'University'    => 4,
+            'Universiti'    => 4,
+        ];
+
         foreach ($competitions as $competition) {
+            $competition['exhibition_level_id'] = $levelMap[$competition['exhibition_level']] ?? null;
             DB::table('competitions')->insert($competition);
         }
     }
