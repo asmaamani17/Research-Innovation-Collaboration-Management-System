@@ -1,91 +1,130 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# RICM — Research, Innovation and Commercialisation Management System
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+RICM is a Laravel web application for managing research and innovation information in one place. It provides role-protected workspaces for administrators and staff, a Super Admin overview across modules, record management, reporting, and spreadsheet import/export workflows.
 
-## RICM Products / TRL workspace
+## System modules
 
-Products Management uses the RICM database table `trl_products` for TRL records. The former `products` table is retained as `legacy_products_archive` so existing award product references remain intact; new TRL records do not use it. TRL records are managed locally; this workspace does not connect to Google Sheets.
+- **Super Admin dashboard:** Cross-module summaries for awards, intellectual property (IP), community/STEM/industry programs, TRL products, KPI achievements, projects, staff, competitions, and faculties. Includes year/faculty filters and workspace navigation.
+- **User and access management:** Login, profile management, role-based access, user administration, and module permissions.
+- **Awards and competitions:** Manage awards and exhibition/competition events, link records to projects and staff, and view dashboards, reports, and award statistics.
+- **Intellectual Property (IP):** Manage IP records, researchers/staff and project associations, categories and status, renewal dates, dashboards, reports, and Excel/CSV imports and exports.
+- **Products / Technology Readiness Level (TRL):** Manage product records and TRL levels, filter records, and import/export spreadsheets.
+- **Community, STEM and Industry:** Manage program records, beneficiaries, evidence, duplicate review, dashboards, and MYRA/overall reports.
+- **KPI:** Manage strategies, indicators, annual targets, achievements, and phases; view and export KPI data.
+- **Research data and reporting:** Manage projects, staff, faculties, and shared reporting, with Excel, CSV, or PDF exports where available.
 
-To create the TRL table and import the supplied source records:
+## Technology
+
+- Laravel 10 and PHP 8.1 or later
+- MySQL (production/local setup may use another Laravel-supported database)
+- Composer for PHP dependencies
+- Node.js and npm for compiling frontend assets with Vite
+- Laravel Blade, Tailwind CSS, and Alpine.js for the web interface
+
+## Local setup
+
+1. Install PHP 8.1+, Composer, Node.js/npm, and configure a MySQL database.
+2. Install dependencies and configure the environment:
+
+   ```bash
+   composer install
+   copy .env.example .env
+   php artisan key:generate
+   ```
+
+   Set the database connection values in `.env` (`DB_CONNECTION`, `DB_HOST`, `DB_PORT`, `DB_DATABASE`, `DB_USERNAME`, and `DB_PASSWORD`). Do not commit `.env` or production credentials.
+
+3. Install frontend dependencies and build assets:
+
+   ```bash
+   npm install
+   npm run build
+   ```
+
+4. Run schema migrations:
+
+   ```bash
+   php artisan migrate
+   ```
+
+5. Start the local application:
+
+   ```bash
+   php artisan serve
+   ```
+
+## Seed data
+
+The default `DatabaseSeeder` seeds example/core data for roles, modules, users, faculties, projects, exhibition references, competitions, staff, community programs, awards, user-module permissions, and KPI data:
 
 ```bash
-php artisan migrate
+php artisan db:seed
+```
+
+Some seeders replace the contents of their target tables, and some depend on source files under `storage/app/import` or `database/seeders`. Review `database/seeders/DatabaseSeeder.php` and the individual seeders before running this command against a database with records you need to keep.
+
+### IP data
+
+IP records are stored in `ip_records`. The migration preserves legacy IP records by copying them from `intellectual_properties` into `ip_records`, archiving the old table as `legacy_intellectual_properties_archive`, and remapping staff associations.
+
+A point-in-time snapshot of 463 records from the `dashboard-ip` Google Sheet's `DATA_IP` tab is included in `database/seeders/ip_records_seed.json`. After migrations have completed, load or refresh those records with:
+
+```bash
+php artisan db:seed --class=IpRecordsSeeder
+```
+
+The seeder upserts by Google Sheet source ID and leaves unrelated IP records intact. It does not connect to Google Sheets at runtime; update the snapshot separately when newer source data is needed.
+
+### TRL product data
+
+TRL product records use `trl_products`. The former `products` table is retained as `legacy_products_archive` for compatibility with old award references. To load the included TRL dataset:
+
+```bash
 php artisan db:seed --class=TrlProductsSeeder
 ```
 
-The seed contains the 731 TRL records supplied with `dashboard-trl`. It can be run again safely because the records have unique UUIDs and duplicate inserts are ignored. Super Admins can manage records under **Products Management**, filter by TRL/status/faculty, import `.xlsx`, `.xls`, or `.csv` files using the displayed headers, and export filtered results to Excel.
+The TRL seed contains 731 records from `dashboard-trl` and can be rerun safely.
 
-## RICM IP Management
+### Other external seed files
 
-IP Management uses `ip_records`, aligned with the newer `dashboard-ip` schema and extended with compatibility fields required by RICM screens. Existing `intellectual_properties` rows are copied into the new table and the old table is renamed `legacy_intellectual_properties_archive`; staff links are migrated to `ip_records`. The IP dashboard, filtering, record management, renewal tracking, reports, and Excel/CSV import and export use `ip_records`; IP pages do not connect to Google Sheets.
+- `KpiSeeder` reads `database/seeders/KPI_Data_Strategi.csv`.
+- `CommunityStemProgramSeeder` reads `storage/app/import/borang_a.csv`.
 
-Apply the IP metadata migration with:
+Supply the relevant file before running the corresponding seeder. Missing input files mean those source records cannot be seeded.
+
+## Deployment notes
+
+- Point the web server document root at Laravel's `public` directory.
+- Configure a production `.env` with `APP_ENV=production`, `APP_DEBUG=false`, a valid `APP_KEY`, and the correct database credentials.
+- Ensure `storage` and `bootstrap/cache` are writable by the PHP/web-server user.
+- Install Composer dependencies for production and build frontend assets before deploying.
+- Run pending migrations using the deployment process and take a database backup first. Avoid running the full `db:seed` command in production unless its effects on existing records have been reviewed.
+- If a deployed application returns HTTP 500, inspect the matching exception in `storage/logs/laravel.log` and the hosting PHP error log; do not enable public debug output on production.
+
+## Tests and checks
+
+Run the Laravel test suite with:
 
 ```bash
-php artisan migrate
+php artisan test
 ```
 
-The migration keeps the previous IP and product tables as archives rather than dropping them. IP data from the 432-row dashboard export is not included in this repository yet; import it after supplying the export file through the IP import page.
+Build frontend assets with:
 
-## About Laravel
+```bash
+npm run build
+```
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+## Repository structure
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
-
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
-
-## Learning Laravel
-
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
-
-You may also try the [Laravel Bootcamp](https://bootcamp.laravel.com), where you will be guided through building a modern Laravel application from scratch.
-
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
-
-## Laravel Sponsors
-
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
-
-### Premium Partners
-
-- **[Vehikl](https://vehikl.com/)**
-- **[Tighten Co.](https://tighten.co)**
-- **[WebReinvent](https://webreinvent.com/)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel/)**
-- **[Cyber-Duck](https://cyber-duck.co.uk)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Jump24](https://jump24.co.uk)**
-- **[Redberry](https://redberry.international/laravel/)**
-- **[Active Logic](https://activelogic.com)**
-- **[byte5](https://byte5.de)**
-- **[OP.GG](https://op.gg)**
-
-## Contributing
-
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
-
-## Code of Conduct
-
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
-
-## Security Vulnerabilities
-
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+- `app/Http/Controllers` — request handling and module workflows
+- `app/Models` — Eloquent models and relationships
+- `database/migrations` — database schema and legacy-data migrations
+- `database/seeders` — reference, sample, and source snapshot seeders
+- `resources/views` — Blade pages and layouts
+- `routes` — web and authentication routes
+- `tests` — unit and feature tests
 
 ## License
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+This application uses Laravel and other open-source dependencies. See `composer.json` and the relevant package licenses for dependency licensing details.

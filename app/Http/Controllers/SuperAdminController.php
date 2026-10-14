@@ -61,16 +61,18 @@ class SuperAdminController extends Controller
         }
         $totalAwards = (clone $awardsQuery)->count();
         $awardsByLevel = (clone $awardsQuery)
-            ->selectRaw("COALESCE(NULLIF(award_name, ''), 'Other') as award_level, COUNT(*) as count")
-            ->groupByRaw("COALESCE(NULLIF(award_name, ''), 'Other')")
-            ->orderBy('count', 'desc')
+            ->selectRaw('award_name, COUNT(*) as count')
+            ->groupBy('award_name')
             ->get()
-            ->map(function ($item) {
-                return (object)[
-                    'award_level' => ucwords(strtolower($item->award_level)),
-                    'count' => (int)$item->count,
+            ->groupBy(fn ($item) => ucwords(strtolower($item->award_name ?: 'Other')))
+            ->map(function ($items, $level) {
+                return (object) [
+                    'award_level' => $level,
+                    'count' => (int) $items->sum('count'),
                 ];
-            });
+            })
+            ->sortByDesc('count')
+            ->values();
         $recentAwards = (clone $awardsQuery)->orderBy('award_date', 'desc')->limit(5)->get();
 
         // 2. INTELLECTUAL PROPERTY (IP) MODULE
@@ -200,16 +202,18 @@ class SuperAdminController extends Controller
             $awardsQuery->whereHas('staff', fn($q) => $q->where('faculty_id', $selectedFaculty));
         }
         $awardsByLevel = $awardsQuery
-            ->selectRaw("COALESCE(NULLIF(award_name, ''), 'Other') as level, COUNT(*) as count")
-            ->groupByRaw("COALESCE(NULLIF(award_name, ''), 'Other')")
-            ->orderBy('count', 'desc')
+            ->selectRaw('award_name, COUNT(*) as count')
+            ->groupBy('award_name')
             ->get()
-            ->map(function ($item) {
+            ->groupBy(fn ($item) => ucwords(strtolower($item->award_name ?: 'Other')))
+            ->map(function ($items, $level) {
                 return [
-                    'level' => ucwords(strtolower($item->level)),
-                    'count' => (int)$item->count,
+                    'level' => $level,
+                    'count' => (int) $items->sum('count'),
                 ];
-            });
+            })
+            ->sortByDesc('count')
+            ->values();
 
         // IP by type
         $ipQuery = IntellectualProperty::query();

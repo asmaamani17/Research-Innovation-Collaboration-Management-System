@@ -83,13 +83,6 @@ class StaffSeeder extends Seeder
                 'updated_at' => now(),
             ],
             [
-                'staff_id' => '02638',
-                'staff_name' => 'WAN MOHD YA\'AKOB BIN WAN BEJURI',
-                'faculty_id' => $facultyMap['FAIX'] ?? null,
-                'created_at' => now(),
-                'updated_at' => now(),
-            ],
-            [
                 'staff_id' => '02195',
                 'staff_name' => 'DAYANASARI BINTI ABDUL HADI',
                 'faculty_id' => $facultyMap['FTKEK'] ?? null,

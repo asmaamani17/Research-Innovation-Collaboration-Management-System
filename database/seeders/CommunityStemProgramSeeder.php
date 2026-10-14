@@ -110,8 +110,8 @@ class CommunityStemProgramSeeder extends Seeder
         // Add beneficiaries for programs that have community/industry names
         foreach ($programs as $index => $program) {
             if (!empty($program['community_industry_name'])) {
-                // Split by comma for multiple beneficiaries
-                $beneficiaryNames = explode(',', $program['community_industry_name']);
+                // Names may be separated by commas or newlines in the source CSV.
+                $beneficiaryNames = preg_split('/[\r\n,]+/', $program['community_industry_name']);
                 foreach ($beneficiaryNames as $name) {
                     $name = trim($name);
                     if (!empty($name)) {
