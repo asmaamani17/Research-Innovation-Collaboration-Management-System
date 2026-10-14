@@ -20,7 +20,10 @@ class Staff extends Model
      */
     public function faculty()
     {
-        return $this->belongsTo(Faculty::class);
+        return $this->belongsTo(Faculty::class)->withDefault([
+            'faculty_name' => 'No Faculty',
+            'faculty_code' => 'N/A'
+        ]);
     }
 
     /**
@@ -32,11 +35,11 @@ class Staff extends Model
     }
 
     /**
-     * Get the intellectual properties for the staff.
+     * Get the IP records associated with the staff.
      */
     public function intellectualProperties()
     {
-        return $this->belongsToMany(IntellectualProperty::class, 'ip_staff', 'staff_id', 'ip_id')->withTimestamps();
+        return $this->belongsToMany(IntellectualProperty::class, 'ip_staff', 'staff_id', 'ip_id');
     }
 
     /**

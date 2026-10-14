@@ -33,21 +33,26 @@
             <div class="px-8 py-6 border-b border-divider-subtle/30">
                 <h3 class="text-lg font-bold text-text-main mb-4">Download Templates</h3>
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <!-- Excel Template RD8_1_New Button -->
                     <a href="{{ route('admin.import.template', ['type' => 'Template_RD8_1_New']) }}"
-                        class="flex items-center gap-3 p-4 rounded-lg bg-blue-50 hover:bg-blue-100 transition-colors border border-blue-200">
-                        <span class="material-symbols-outlined text-blue-600 text-2xl">download</span>
-                        <div>
-                            <p class="font-semibold text-text-main text-sm">Template_RD8_1_New</p>
-                            <p class="text-xs text-divider-subtle">Download Template_RD8_1_New format</p>
+                        class="group bg-gradient-to-br from-blue-50 to-blue-100 border border-blue-200 rounded-xl p-6 hover:shadow-lg transition-all duration-300 hover:-translate-y-1">
+                        <div class="flex items-center justify-between mb-3">
+                            <span class="material-symbols-outlined text-3xl text-blue-600">description</span>
+                            <span class="text-xs font-semibold text-blue-600 bg-blue-200/80 px-2.5 py-1 rounded-full">Excel Template</span>
                         </div>
+                        <h4 class="font-bold text-text-main mb-2 group-hover:text-blue-700 transition-colors">Template_RD8_1_New</h4>
+                        <p class="text-sm text-divider-subtle">Download UTeM format Excel template</p>
                     </a>
+
+                    <!-- Excel Template RD8_New Button -->
                     <a href="{{ route('admin.import.template', ['type' => 'Template_RD8_New']) }}"
-                        class="flex items-center gap-3 p-4 rounded-lg bg-green-50 hover:bg-green-100 transition-colors border border-green-200">
-                        <span class="material-symbols-outlined text-green-600 text-2xl">download</span>
-                        <div>
-                            <p class="font-semibold text-text-main text-sm">Template_RD8_New</p>
-                            <p class="text-xs text-divider-subtle">Download Template_RD8_New format</p>
+                        class="group bg-gradient-to-br from-green-50 to-green-100 border border-green-200 rounded-xl p-6 hover:shadow-lg transition-all duration-300 hover:-translate-y-1">
+                        <div class="flex items-center justify-between mb-3">
+                            <span class="material-symbols-outlined text-3xl text-green-600">table_chart</span>
+                            <span class="text-xs font-semibold text-green-600 bg-green-200/80 px-2.5 py-1 rounded-full">Excel Template</span>
                         </div>
+                        <h4 class="font-bold text-text-main mb-2 group-hover:text-green-700 transition-colors">Template_RD8_New</h4>
+                        <p class="text-sm text-divider-subtle">Download standard Excel template</p>
                     </a>
                 </div>
             </div>
@@ -81,10 +86,18 @@
                             <div>
                                 <p class="text-sm font-semibold text-yellow-800">Important Notes:</p>
                                 <ul class="text-xs text-yellow-700 mt-1 space-y-1 list-disc list-inside">
-                                    <li>Ensure date fields are in YYYY-MM-DD format</li>
-                                    <li>For Staff imports, faculty_code must match existing faculty codes</li>
+                                    <li>Ensure date fields are in YYYY-MM-DD format (e.g., 2024-01-15)</li>
+                                    <li>ProjectID must match existing project IDs in the system</li>
+                                    <li>Staff ID must match existing staff IDs in the system</li>
+                                    <li>For Template_RD8_1_New: Person_RefNo must match Staff records</li>
+                                    <li>For Template_RD8_New: ProjectID must match existing Project records</li>
+                                    <li>Faculty codes must match existing faculty codes in the system</li>
                                     <li>Maximum file size: 10MB</li>
                                     <li>Only CSV files are accepted</li>
+                                    <li>Do not modify the column headers in the template</li>
+                                    <li>Ensure all required fields are filled before importing</li>
+                                    <li>Leave empty cells for optional fields, do not use spaces</li>
+                                    <li>Back up your data before bulk import operations</li>
                                 </ul>
                             </div>
                         </div>
@@ -98,23 +111,39 @@
                 <form id="importForm" class="space-y-4">
                     @csrf
                     <div>
-                        <label class="block text-sm font-medium text-text-main mb-2">Select Data Type</label>
-                        <select name="type" id="dataType" required
-                            class="w-full px-4 py-3 rounded-lg border border-divider-subtle/70 bg-white text-text-main focus:outline-none focus:ring-2 focus:ring-primary/50">
-                            <option value="">-- Select Data Type --</option>
-                            <option value="Template_RD8_1_New">Template_RD8_1_New</option>
-                            <option value="Template_RD8_New">Template_RD8_New</option>
-                            <option value="awards">Awards</option>
-                            <option value="events">Events</option>
-                            <option value="faculties">Faculties</option>
-                            <option value="projects">Projects</option>
-                            <option value="staff">Staff</option>
-                        </select>
+                        <label class="block text-sm font-medium text-text-main mb-3">Select Data Format</label>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4" id="templateSelectionGrid">
+                            <!-- Card 1: Template_RD8_1_New -->
+                            <label class="relative flex flex-col p-4 rounded-xl border-2 cursor-pointer transition-all duration-200 border-primary bg-primary/5 shadow-sm" id="card_Template_RD8_1_New">
+                                <input type="radio" name="type" value="Template_RD8_1_New" checked class="sr-only" onchange="selectImportTemplate('Template_RD8_1_New')">
+                                <div class="flex items-center justify-between mb-2">
+                                    <div class="flex items-center gap-2">
+                                        <span class="material-symbols-outlined text-primary">description</span>
+                                        <span class="font-bold text-text-main text-sm">Template_RD8_1_New</span>
+                                    </div>
+                                    <span class="material-symbols-outlined text-primary text-xl check-icon">check_circle</span>
+                                </div>
+                                <p class="text-xs text-divider-subtle">Person Recognition & Staff mapping format</p>
+                            </label>
+
+                            <!-- Card 2: Template_RD8_New -->
+                            <label class="relative flex flex-col p-4 rounded-xl border-2 cursor-pointer transition-all duration-200 border-divider-subtle/30 bg-white hover:border-primary/50" id="card_Template_RD8_New">
+                                <input type="radio" name="type" value="Template_RD8_New" class="sr-only" onchange="selectImportTemplate('Template_RD8_New')">
+                                <div class="flex items-center justify-between mb-2">
+                                    <div class="flex items-center gap-2">
+                                        <span class="material-symbols-outlined text-green-600">table_chart</span>
+                                        <span class="font-bold text-text-main text-sm">Template_RD8_New</span>
+                                    </div>
+                                    <span class="material-symbols-outlined text-divider-subtle text-xl check-icon hidden">check_circle</span>
+                                </div>
+                                <p class="text-xs text-divider-subtle">Project Awards & Exhibition details format</p>
+                            </label>
+                        </div>
                     </div>
                     <div>
                         <label class="block text-sm font-medium text-text-main mb-2">Upload CSV File</label>
                         <div class="relative">
-                            <input type="file" name="file" id="csvFile" accept=".csv" required
+                            <input type="file" name="file" id="csvFile" accept=".csv,.txt" required
                                 class="w-full px-4 py-3 rounded-lg border border-divider-subtle/70 bg-white text-text-main focus:outline-none focus:ring-2 focus:ring-primary/50 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:bg-primary file:text-white file:text-sm file:font-medium hover:file:bg-primary/90">
                         </div>
                     </div>
@@ -146,10 +175,26 @@
 
 @push('scripts')
     <script>
+        function selectImportTemplate(type) {
+            document.querySelectorAll('#templateSelectionGrid label').forEach(card => {
+                card.classList.remove('border-primary', 'bg-primary/5', 'shadow-sm');
+                card.classList.add('border-divider-subtle/30', 'bg-white');
+                const icon = card.querySelector('.check-icon');
+                if (icon) icon.classList.add('hidden');
+            });
+
+            const activeCard = document.getElementById('card_' + type);
+            if (activeCard) {
+                activeCard.classList.remove('border-divider-subtle/30', 'bg-white');
+                activeCard.classList.add('border-primary', 'bg-primary/5', 'shadow-sm');
+                const icon = activeCard.querySelector('.check-icon');
+                if (icon) icon.classList.remove('hidden');
+            }
+        }
+
         document.addEventListener('DOMContentLoaded', function () {
             const importForm = document.getElementById('importForm');
             const csvFile = document.getElementById('csvFile');
-            const dataType = document.getElementById('dataType');
             const submitBtn = document.getElementById('submitBtn');
             const progressContainer = document.getElementById('progressContainer');
             const progressBar = document.getElementById('progressBar');
@@ -164,14 +209,11 @@
                     return;
                 }
 
-                if (!dataType.value) {
-                    alert('Please select a data type.');
-                    return;
-                }
+                const selectedType = document.querySelector('input[name="type"]:checked')?.value || 'Template_RD8_1_New';
 
                 const formData = new FormData();
                 formData.append('file', csvFile.files[0]);
-                formData.append('type', dataType.value);
+                formData.append('type', selectedType);
                 formData.append('_token', document.querySelector('input[name="_token"]').value);
 
                 // Show progress bar

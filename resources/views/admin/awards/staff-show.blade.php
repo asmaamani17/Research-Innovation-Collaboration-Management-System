@@ -13,7 +13,7 @@
                 View staff member information and award history.
             </p>
         </div>
-        <a href="{{ route('admin.staff.index') }}" class="flex min-w-[160px] cursor-pointer items-center justify-center gap-2 overflow-hidden rounded-lg h-12 px-6 bg-white border border-divider-subtle/40 text-text-main text-sm font-bold shadow-sm hover:bg-background-light transition-all">
+        <a href="{{ route('admin.staff.index') }}" class="flex min-w-[160px] cursor-pointer items-center justify-center gap-2 overflow-hidden rounded-lg h-12 px-6 bg-white border border-divider-subtle/40 text-text-main text-sm font-bold shadow-lg hover:bg-background-light transition-all">
             <span class="material-symbols-outlined text-sm">arrow_back</span>
             <span>Back to Staff</span>
         </a>
@@ -52,7 +52,7 @@
         </div>
 
         <!-- Statistics Cards -->
-        <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
             <div class="bg-white border border-divider-subtle/30 rounded-xl p-4">
                 <div class="text-divider-subtle text-xs font-medium uppercase tracking-wider mb-2">Total Awards</div>
                 <div class="text-3xl font-bold text-primary">{{ $award_stats['total'] }}</div>
@@ -69,6 +69,14 @@
                 <div class="text-divider-subtle text-xs font-medium uppercase tracking-wider mb-2">Bronze</div>
                 <div class="text-3xl font-bold text-orange-700">{{ $award_stats['bronze'] }}</div>
             </div>
+            <div class="bg-white border border-divider-subtle/30 rounded-xl p-4">
+                <div class="text-divider-subtle text-xs font-medium uppercase tracking-wider mb-2">Platinum</div>
+                <div class="text-3xl font-bold text-cyan-600">{{ $award_stats['platinum'] ?? 0 }}</div>
+            </div>
+            <div class="bg-white border border-divider-subtle/30 rounded-xl p-4">
+                <div class="text-divider-subtle text-xs font-medium uppercase tracking-wider mb-2">Special</div>
+                <div class="text-3xl font-bold text-purple-600">{{ $award_stats['special'] ?? 0 }}</div>
+            </div>
         </div>
 
         <!-- Awards Section -->
@@ -83,7 +91,7 @@
                             <div class="flex items-center justify-between">
                                 <div class="flex-1">
                                     <div class="flex items-center gap-3">
-                                        <span class="px-2 py-1 rounded text-[10px] font-bold uppercase {{ $award->level_color }}">
+                                        <span class="px-2 py-1 rounded text-[10px] font-bold uppercase" style="background-color: {{ $award->level_color }}20; color: {{ $award->level_color }}">
                                             {{ $award->award_level }}
                                         </span>
                                         <h4 class="text-sm font-semibold text-text-main">{{ $award->award_name }}</h4>
@@ -93,8 +101,12 @@
                                             <span>{{ $award->project->project_title }}</span>
                                             <span>•</span>
                                         @endif
-                                        @if($award->event)
-                                            <span>{{ $award->event->event_name }}</span>
+                                        @if($award->competition)
+                                            <span>{{ $award->competition->event_name }}</span>
+                                            <span>•</span>
+                                        @endif
+                                        @if($award->exhibitionResult)
+                                            <span>{{ $award->exhibitionResult->Description }}</span>
                                             <span>•</span>
                                         @endif
                                         <span>{{ $award->award_date ? \Carbon\Carbon::parse($award->award_date)->format('M d, Y') : 'N/A' }}</span>
@@ -102,7 +114,7 @@
                                 </div>
                                 <div class="text-right">
                                     @if($award->evidence_document)
-                                        <a href="{{ asset('storage/' . $award->evidence_document) }}" target="_blank" 
+                                        <a href="{{ asset('storage/' . $award->evidence_document) }}" target="_blank"
                                             class="inline-flex items-center gap-1 text-primary hover:underline text-sm">
                                             <span class="material-symbols-outlined text-lg">link</span>
                                             Evidence
@@ -121,6 +133,55 @@
                     </div>
                 </div>
             @endif
+        </div>
+    </div>
+
+    <!-- Edit Staff Modal -->
+    <div id="editStaffModal" class="hidden fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+        <div class="bg-white rounded-xl shadow-2xl w-full max-w-md mx-4">
+            <div class="flex items-center justify-between px-6 py-4 border-b border-divider-subtle/30">
+                <h3 class="text-lg font-bold text-text-main">Edit Staff</h3>
+                <button type="button" onclick="closeEditStaffModal()" class="text-divider-subtle hover:text-text-main">
+                    <span class="material-symbols-outlined">close</span>
+                </button>
+            </div>
+            <form action="" method="POST" id="editStaffForm">
+                @csrf
+                @method('PUT')
+                <input type="hidden" name="id" id="edit_staff_id">
+                <div class="p-6 space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium text-text-main mb-2">Staff ID</label>
+                        <input type="text" name="staff_id" id="edit_staff_code" readonly
+                            class="w-full h-11 px-4 bg-background-light border border-divider-subtle/40 rounded-lg text-sm text-divider-subtle cursor-not-allowed">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-text-main mb-2">Staff Name</label>
+                        <input type="text" name="staff_name" id="edit_staff_name" required
+                            class="w-full h-11 px-4 bg-background-light border border-divider-subtle/40 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent text-sm">
+                        @error('staff_name')
+                            <p class="mt-1 text-xs text-red-500">{{ $message }}</p>
+                        @enderror
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-text-main mb-2">Faculty</label>
+                        <select name="faculty_id" id="edit_faculty_id" required
+                            class="w-full h-11 px-4 bg-background-light border border-divider-subtle/40 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent text-sm">
+                            <option value="">Select Faculty</option>
+                            @foreach($faculties ?? [] as $faculty)
+                                <option value="{{ $faculty->id }}">{{ $faculty->faculty_name }}</option>
+                            @endforeach
+                        </select>
+                        @error('faculty_id')
+                            <p class="mt-1 text-xs text-red-500">{{ $message }}</p>
+                        @enderror
+                    </div>
+                </div>
+                <div class="px-6 py-4 border-t border-divider-subtle/30 flex justify-end gap-3">
+                    <button type="button" onclick="closeEditStaffModal()" class="px-4 py-2 rounded-lg border border-divider-subtle/40 text-sm font-semibold text-text-main hover:bg-background-light transition-colors">Cancel</button>
+                    <button type="submit" class="px-4 py-2 rounded-lg bg-primary text-white text-sm font-semibold hover:bg-primary/90 transition-colors">Save Changes</button>
+                </div>
+            </form>
         </div>
     </div>
 @endsection

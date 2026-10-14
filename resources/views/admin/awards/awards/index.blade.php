@@ -109,7 +109,7 @@
                     <tbody class="divide-y divide-divider-subtle/20">
                         @forelse($awards as $award)
                             @php
-                                $awardKey = strtoupper($award->award_name ?? 'AWARD');
+                                $awardKey = strtoupper($award->award_level ?? 'AWARD');
                                 $style = $awardStyles[$awardKey] ?? ['text' => 'text-text-main', 'icon' => 'text-primary', 'badge' => 'bg-primary/10 text-primary'];
                                 $staffName = $award->staff->staff_name ?? 'Unknown Staff';
                             @endphp
@@ -140,15 +140,15 @@
                                     </div>
                                 </td>
                                 <td class="px-6 py-4">
-                                    <span class="px-2 py-1 rounded bg-blue-100 text-blue-700 text-[10px] font-bold">{{ $award->award_level }}</span>
+                                    <span class="px-2 py-1 rounded {{ $style['badge'] }} text-[10px] font-bold">{{ $award->award_level }}</span>
                                 </td>
                                 <td class="px-6 py-4 text-sm text-text-main/80">{{ $award->award_type }}</td>
                                 <td class="px-6 py-4 text-sm text-text-main/80 min-w-[260px]">
-                                    {{ $award->event->event_name ?? 'Unknown Event' }}
+                                    {{ $award->competition->event_name ?? 'Unknown Event' }}
                                 </td>
                                 <td class="px-6 py-4">
-                                    <span class="px-2 py-1 rounded {{ strtoupper($award->event->exhibition_level ?? '') === 'INTERNATIONAL' ? 'bg-purple-100 text-purple-700' : 'bg-green-100 text-green-700' }} text-[10px] font-bold">
-                                        {{ $award->event->exhibition_level ?? 'N/A' }}
+                                    <span class="px-2 py-1 rounded {{ strtoupper($award->competition->exhibition_level ?? '') === 'INTERNATIONAL' ? 'bg-purple-100 text-purple-700' : 'bg-green-100 text-green-700' }} text-[10px] font-bold">
+                                        {{ $award->competition->exhibition_level ?? 'N/A' }}
                                     </span>
                                 </td>
                                 <td class="px-6 py-4 text-sm text-text-main/80 whitespace-nowrap">

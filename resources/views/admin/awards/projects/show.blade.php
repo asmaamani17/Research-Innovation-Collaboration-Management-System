@@ -22,7 +22,7 @@
             </p>
         </div>
         <div class="flex items-center gap-2">
-            <a href="{{ route('admin.projects.index') }}"
+            <a href="{{ route('admin.projects.edit', $project->id) }}"
                 class="flex items-center gap-2 px-6 py-3 bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors font-medium shadow-lg">
                 <span class="material-symbols-outlined">edit</span>
                 <span>Edit</span>
@@ -32,7 +32,7 @@
 
     <!-- Statistics Cards -->
     <div class="px-8 mb-8">
-        <div class="grid grid-cols-2 md:grid-cols-5 gap-4">
+        <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-4">
             <div class="bg-white border border-divider-subtle/30 rounded-xl p-4">
                 <div class="text-divider-subtle text-xs font-medium uppercase tracking-wider mb-2">Total Awards</div>
                 <div class="text-3xl font-bold text-primary">{{ $stats['total_awards'] }}</div>
@@ -52,6 +52,14 @@
             <div class="bg-white border border-divider-subtle/30 rounded-xl p-4">
                 <div class="text-divider-subtle text-xs font-medium uppercase tracking-wider mb-2">Bronze</div>
                 <div class="text-3xl font-bold text-orange-600">{{ $stats['bronze_awards'] }}</div>
+            </div>
+            <div class="bg-white border border-divider-subtle/30 rounded-xl p-4">
+                <div class="text-divider-subtle text-xs font-medium uppercase tracking-wider mb-2">Platinum</div>
+                <div class="text-3xl font-bold text-cyan-600">{{ $stats['platinum_awards'] ?? 0 }}</div>
+            </div>
+            <div class="bg-white border border-divider-subtle/30 rounded-xl p-4">
+                <div class="text-divider-subtle text-xs font-medium uppercase tracking-wider mb-2">Special</div>
+                <div class="text-3xl font-bold text-purple-600">{{ $stats['special_awards'] ?? 0 }}</div>
             </div>
         </div>
     </div>
@@ -120,8 +128,11 @@
                                 <div class="flex-shrink-0">
                                     @php
                                         $levelColors = [
+                                            'GOLD' => 'bg-yellow-100 text-yellow-700',
                                             'Gold' => 'bg-yellow-100 text-yellow-700',
+                                            'SILVER' => 'bg-gray-100 text-gray-700',
                                             'Silver' => 'bg-gray-100 text-gray-700',
+                                            'BRONZE' => 'bg-orange-100 text-orange-700',
                                             'Bronze' => 'bg-orange-100 text-orange-700'
                                         ];
                                         $color = $levelColors[$award->award_level] ?? 'bg-gray-100 text-gray-700';
@@ -137,12 +148,12 @@
                                             class="text-primary hover:underline">
                                             {{ $award->staff->staff_name }}
                                         </a>
-                                        @if($award->event)
-                                            @ {{ $award->event->event_name }}
+                                        @if($award->competition)
+                                            @ {{ $award->competition->event_name }}
                                         @endif
                                     </p>
                                     <div class="text-xs text-divider-subtle mt-2">
-                                        {{ $award->award_date ? $award->award_date->format('M d, Y') : 'N/A' }}
+                                        {{ $award->award_date ? \Carbon\Carbon::parse($award->award_date)->format('M d, Y') : 'N/A' }}
                                     </div>
                                 </div>
                             </div>
@@ -208,6 +219,20 @@
                             <span class="text-sm font-medium text-text-main">Bronze Awards</span>
                         </div>
                         <span class="text-lg font-bold text-orange-600">{{ $stats['bronze_awards'] }}</span>
+                    </div>
+                    <div class="flex items-center justify-between p-3 bg-cyan-50 rounded-lg">
+                        <div class="flex items-center gap-2">
+                            <span class="material-symbols-outlined text-lg text-cyan-600">emoji_events</span>
+                            <span class="text-sm font-medium text-text-main">Platinum Awards</span>
+                        </div>
+                        <span class="text-lg font-bold text-cyan-600">{{ $stats['platinum_awards'] ?? 0 }}</span>
+                    </div>
+                    <div class="flex items-center justify-between p-3 bg-purple-50 rounded-lg">
+                        <div class="flex items-center gap-2">
+                            <span class="material-symbols-outlined text-lg text-purple-600">emoji_events</span>
+                            <span class="text-sm font-medium text-text-main">Special Awards</span>
+                        </div>
+                        <span class="text-lg font-bold text-purple-600">{{ $stats['special_awards'] ?? 0 }}</span>
                     </div>
                 </div>
             </div>

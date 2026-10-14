@@ -17,19 +17,23 @@ class DatabaseSeeder extends Seeder
             RoleSeeder::class,
             ModuleSeeder::class,
             UserSeeder::class,
-            
+
             // Core tables (no foreign key dependencies)
             FacultySeeder::class,
             ProjectSeeder::class,
+            ExhibitionLevelSeeder::class,
+            ExhibitionResultSeeder::class,
             CompetitionSeeder::class,
-            
+
             // Dependent tables (requires foreign keys)
+            PersonTypeSeeder::class,
             StaffSeeder::class,      // depends on faculties
+            CommunityStemProgramSeeder::class,  // depends on staff, projects
             AwardSeeder::class,      // depends on staff, projects, events
-            
+
             // User module permissions
             UserModuleSeeder::class,
-            
+
             // KPI data
             KpiSeeder::class,
         ]);

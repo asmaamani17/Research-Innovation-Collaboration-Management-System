@@ -34,7 +34,7 @@ class StaffSeeder extends Seeder
                 'updated_at' => now(),
             ],
             [
-                'staff_id' => '2719',
+                'staff_id' => '02719',
                 'staff_name' => 'NOORREZAM BIN YUSOP',
                 'faculty_id' => $facultyMap['FTMK'] ?? null,
                 'created_at' => now(),
@@ -62,7 +62,7 @@ class StaffSeeder extends Seeder
                 'updated_at' => now(),
             ],
             [
-                'staff_id' => '2725',
+                'staff_id' => '02725',
                 'staff_name' => 'FATHIN NABILLA BINTI MD LEZA',
                 'faculty_id' => $facultyMap['FTMK'] ?? null,
                 'created_at' => now(),
@@ -76,21 +76,14 @@ class StaffSeeder extends Seeder
                 'updated_at' => now(),
             ],
             [
-                'staff_id' => '2592',
+                'staff_id' => '02592',
                 'staff_name' => 'NUR ZAREEN BINTI ZULKARNAIN',
                 'faculty_id' => $facultyMap['FAIX'] ?? null,
                 'created_at' => now(),
                 'updated_at' => now(),
             ],
             [
-                'staff_id' => '2638',
-                'staff_name' => 'WAN MOHD YA\'AKOB BIN WAN BEJURI',
-                'faculty_id' => $facultyMap['FAIX'] ?? null,
-                'created_at' => now(),
-                'updated_at' => now(),
-            ],
-            [
-                'staff_id' => '2195',
+                'staff_id' => '02195',
                 'staff_name' => 'DAYANASARI BINTI ABDUL HADI',
                 'faculty_id' => $facultyMap['FTKEK'] ?? null,
                 'created_at' => now(),

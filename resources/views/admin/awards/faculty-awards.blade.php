@@ -7,13 +7,13 @@
     <header class="px-8 py-8 flex flex-wrap items-center justify-between gap-4">
         <div class="flex flex-col">
             <h2 class="text-text-main text-3xl font-black leading-tight tracking-tight">
-                {{ $faculty->faculty_name }} - Awards
+                {{ $faculty->faculty_name }} 
             </h2>
             <p class="text-divider-subtle font-medium text-sm mt-1">
                 View all awards for this faculty.
             </p>
         </div>
-        <a href="{{ route('admin.faculty.show', $faculty->id) }}" class="flex min-w-[160px] cursor-pointer items-center justify-center gap-2 overflow-hidden rounded-lg h-12 px-6 bg-white border border-divider-subtle/40 text-text-main text-sm font-bold shadow-sm hover:bg-background-light transition-all">
+        <a href="{{ route('admin.faculty.show', $faculty->id) }}" class="flex min-w-[160px] cursor-pointer items-center justify-center gap-2 overflow-hidden rounded-lg h-12 px-6 bg-white border border-divider-subtle/40 text-text-main text-sm font-bold shadow-lg hover:bg-background-light transition-all">
             <span class="material-symbols-outlined text-sm">arrow_back</span>
             <span>Back to Faculty</span>
         </a>

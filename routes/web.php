@@ -6,6 +6,10 @@ use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Admin\ImportController;
 use App\Http\Controllers\Admin\KpiController;
 use App\Http\Controllers\Admin\IpController;
+use App\Http\Controllers\Admin\ProductController;
+use App\Http\Controllers\Admin\CommunityStemProgramController;
+use App\Http\Controllers\Admin\CommunityStemDuplicateController;
+use App\Http\Controllers\Admin\CommunityStemReportController;
 use App\Http\Controllers\SuperAdminController;
 use Illuminate\Support\Facades\Route;
 
@@ -32,10 +36,60 @@ Route::middleware(['auth', 'superadmin'])->prefix('superadmin')->name('superadmi
     Route::get('/dashboard/data', [SuperAdminController::class, 'getDashboardData'])->name('dashboard.data');
 });
 
+Route::middleware(['auth'])->prefix('admin/products')->name('admin.products.')->controller(ProductController::class)->group(function () {
+    Route::get('/', 'index')->name('index');
+    Route::get('/records', 'records')->name('records');
+    Route::get('/create', 'create')->name('create');
+    Route::post('/', 'store')->name('store');
+    Route::post('/import', 'import')->name('import');
+    Route::get('/export', 'export')->name('export');
+    Route::get('/{product}/edit', 'edit')->name('edit');
+    Route::put('/{product}', 'update')->name('update');
+    Route::delete('/{product}', 'destroy')->name('destroy');
+});
+
 // Workspace Switcher Routes
 Route::middleware(['auth', 'superadmin'])->prefix('workspace')->name('workspace.')->group(function () {
     Route::get('/switch/{workspace}', [SuperAdminController::class, 'switchWorkspace'])->name('switch');
 });
+
+Route::get('/admin/community-stem', [\App\Http\Controllers\Admin\CommunityStemDashboardController::class, 'index'])
+    ->middleware(['auth', 'superadmin'])
+    ->name('admin.stem.dashboard');
+
+Route::get('/admin/community-stem/data', [\App\Http\Controllers\Admin\CommunityStemDashboardController::class, 'data'])
+    ->middleware(['auth', 'superadmin'])
+    ->name('admin.stem.data');
+
+Route::middleware(['auth', 'superadmin'])
+    ->prefix('admin/community-stem/programs')
+    ->name('admin.stem.programs.')
+    ->controller(CommunityStemProgramController::class)
+    ->group(function () {
+        Route::get('/', 'index')->name('index');
+        Route::get('/create', 'create')->name('create');
+        Route::get('/bulk-ocr', 'bulkOcr')->name('ocr');
+        Route::post('/', 'store')->name('store');
+        Route::get('/{program}/edit', 'edit')->name('edit');
+        Route::put('/{program}', 'update')->name('update');
+        Route::delete('/{program}', 'destroy')->name('destroy');
+    });
+
+Route::middleware(['auth', 'superadmin'])
+    ->prefix('admin/community-stem')
+    ->name('admin.stem.')
+    ->group(function () {
+        Route::get('/panduan', [\App\Http\Controllers\Admin\CommunityStemDashboardController::class, 'panduan'])
+            ->name('panduan');
+        Route::get('/programs/duplicates/preview', [CommunityStemDuplicateController::class, 'preview'])
+            ->name('programs.duplicates.preview');
+        Route::post('/programs/duplicates/remove', [CommunityStemDuplicateController::class, 'remove'])
+            ->name('programs.duplicates.remove');
+        Route::get('/reports/myra', [CommunityStemReportController::class, 'myra'])
+            ->name('reports.myra');
+        Route::get('/reports/overall', [CommunityStemReportController::class, 'overall'])
+            ->name('reports.overall');
+    });
 
 Route::get('/admin/dashboard', [\App\Http\Controllers\Admin\DashboardController::class, 'index'])->middleware(['auth'])->name('admin.dashboard');
 
@@ -95,8 +149,10 @@ Route::middleware(['auth'])->prefix('admin/ip')->name('admin.ip.')->group(functi
     Route::post('/', [IpController::class, 'store'])->name('store');
     Route::get('/dashboard', [IpController::class, 'dashboard'])->name('dashboard');
     Route::get('/import', [IpController::class, 'import'])->name('import');
+    Route::post('/import', [IpController::class, 'importStore'])->name('import.store');
     Route::get('/reports', [IpController::class, 'reports'])->name('reports');
     Route::get('/export', [IpController::class, 'export'])->name('export');
+    Route::get('/renewals', [IpController::class, 'renewals'])->name('renewals');
     Route::get('/{id}', [IpController::class, 'show'])->name('show');
     Route::get('/{id}/edit', [IpController::class, 'edit'])->name('edit');
     Route::put('/{id}', [IpController::class, 'update'])->name('update');
@@ -145,6 +201,7 @@ Route::get('/admin/reports/event-participation', [ReportController::class, 'even
 // Export Routes
 Route::get('/admin/reports/export/excel', [ReportController::class, 'exportExcel'])->middleware(['auth'])->name('reports.export.excel');
 Route::get('/admin/reports/export/csv', [ReportController::class, 'exportCsv'])->middleware(['auth'])->name('reports.export.csv');
+Route::get('/admin/reports/export/pdf', [ReportController::class, 'exportPdf'])->middleware(['auth'])->name('reports.export.pdf');
 
 // API Routes for Charts
 Route::get('/api/reports/chart-data', [ReportController::class, 'getChartData'])->middleware(['auth'])->name('reports.api.chart-data');

@@ -97,17 +97,46 @@ class FacultyController extends Controller
                 $query->withCount('awards')->orderBy('staff_name');
             },
             'awards' => function($query) {
-                $query->with(['staff', 'project', 'event'])->orderBy('created_at', 'desc');
+                $query->with(['staff', 'project', 'competition', 'exhibitionResult'])->orderBy('created_at', 'desc');
             }
         ])->findOrFail($id);
 
-        // Calculate faculty statistics
+        // Calculate faculty statistics (case-insensitive matching)
+        // Check award_level, award_name, and exhibition_result.Description fields
+        // Support both English (Gold, Silver, Bronze) and Malay (Emas, Perak, Gangsa)
         $stats = [
             'total_staff' => $faculty->staff->count(),
             'total_awards' => $faculty->awards->count(),
-            'gold_awards' => $faculty->awards->where('award_level', 'Gold')->count(),
-            'silver_awards' => $faculty->awards->where('award_level', 'Silver')->count(),
-            'bronze_awards' => $faculty->awards->where('award_level', 'Bronze')->count(),
+            'gold_awards' => $faculty->awards->filter(function($a) {
+                $level = strtoupper($a->award_level ?? '');
+                $name = strtoupper($a->award_name ?? '');
+                $result = strtoupper($a->exhibitionResult->Description ?? '');
+                return $level === 'GOLD' || str_contains($name, 'GOLD') || str_contains($result, 'EMAS');
+            })->count(),
+            'silver_awards' => $faculty->awards->filter(function($a) {
+                $level = strtoupper($a->award_level ?? '');
+                $name = strtoupper($a->award_name ?? '');
+                $result = strtoupper($a->exhibitionResult->Description ?? '');
+                return $level === 'SILVER' || str_contains($name, 'SILVER') || str_contains($result, 'PERAK');
+            })->count(),
+            'bronze_awards' => $faculty->awards->filter(function($a) {
+                $level = strtoupper($a->award_level ?? '');
+                $name = strtoupper($a->award_name ?? '');
+                $result = strtoupper($a->exhibitionResult->Description ?? '');
+                return $level === 'BRONZE' || str_contains($name, 'BRONZE') || str_contains($result, 'GANGSA');
+            })->count(),
+            'platinum_awards' => $faculty->awards->filter(function($a) {
+                $level = strtoupper($a->award_level ?? '');
+                $name = strtoupper($a->award_name ?? '');
+                $result = strtoupper($a->exhibitionResult->Description ?? '');
+                return $level === 'PLATINUM' || str_contains($name, 'PLATINUM') || str_contains($result, 'PLATINUM');
+            })->count(),
+            'special_awards' => $faculty->awards->filter(function($a) {
+                $level = strtoupper($a->award_level ?? '');
+                $name = strtoupper($a->award_name ?? '');
+                $result = strtoupper($a->exhibitionResult->Description ?? '');
+                return $level === 'SPECIAL' || str_contains($name, 'SPECIAL') || str_contains($result, 'ANUGERAH KHAS');
+            })->count(),
             'staff_with_awards' => $faculty->staff->where('awards_count', '>', 0)->count(),
         ];
 
@@ -159,7 +188,7 @@ class FacultyController extends Controller
     {
         $faculty = Faculty::findOrFail($id);
         $awards = $faculty->awards()
-            ->with(['staff', 'project', 'event'])
+            ->with(['staff', 'project', 'competition', 'exhibitionResult'])
             ->orderBy('created_at', 'desc')
             ->paginate(15);
 

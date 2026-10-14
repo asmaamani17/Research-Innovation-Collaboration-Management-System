@@ -13,7 +13,7 @@
                 All projects associated with this faculty.
             </p>
         </div>
-        <a href="{{ route('admin.faculty.show', $faculty->id) }}" class="flex min-w-[160px] cursor-pointer items-center justify-center gap-2 overflow-hidden rounded-lg h-12 px-6 bg-white border border-divider-subtle/40 text-text-main text-sm font-bold shadow-sm hover:bg-background-light transition-all">
+        <a href="{{ route('admin.faculty.show', $faculty->id) }}" class="flex min-w-[160px] cursor-pointer items-center justify-center gap-2 overflow-hidden rounded-lg h-12 px-6 bg-white border border-divider-subtle/40 text-text-main text-sm font-bold shadow-lg hover:bg-background-light transition-all">
             <span class="material-symbols-outlined text-sm">arrow_back</span>
             <span>Back to Faculty</span>
         </a>

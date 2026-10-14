@@ -10,6 +10,7 @@ use App\Models\IntellectualProperty;
 use App\Models\Project;
 use App\Models\Staff;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 
 class ImportController extends Controller
@@ -29,7 +30,7 @@ class ImportController extends Controller
                 '3,1213,1,1,MOHD FAUZI BIN MAMAT',
             ],
             'Template_RD8_New' => [
-                'No,ProjectID,ProjectTitle,ExhibitionName,ExhibitionLevelID,ExhibitionResultID,ExhibitionPlace,StartDate,EndDate,Amount,Invention_Award',
+                'Id_Recognation,ProjectID,ProjectTitle,ExhibitionName,ExhibitionLevelID,ExhibitionResultID,ExhibitionPlace,StartDate,EndDate,Amount,Invention_Award',
                 '1,8653,TRANSFORMER-BASED MULTIMODAL COMMUNICATION SYSTEM FOR WORD PREDICTION IN APHASIA,THE 2ND ARTIFICIAL INTELLIGENCE APPLICATION CHALLENGE BY CHINA-ASEAN INFORMATION HARBOR ELECTRONIC INFORMATION TALENT DEVELOPMENT AND TECHNOLOGY INNOVATION ALLIANCE,1,9,ONLINE,01-07-2025,01-07-2025,RM0.00,1',
                 '2,8661,ANTIBACTERIAL SELF-HEALING COATING,4TH INTERNATIONAL RESEARCH & INNOVATIVE TECHNOLOGY COMPETITION 2025 (I-RITEC2025),1,1,4TH INTERNATIONAL RESEARCH & INNOVATIVE TECHNOLOGY COMPETITION 2025 (I-RITEC2025),10-07-2025,25-09-2025,RM250.00,1',
             ],
@@ -91,363 +92,330 @@ class ImportController extends Controller
     {
         $request->validate([
             'file' => 'required|file|mimes:csv,txt|max:10240',
-            'type' => 'required|in:Template_RD8_1_New,Template_RD8_New,myMOHE,myRA,awards,events,faculties,projects,staff,ip',
+            'type' => 'nullable|in:Template_RD8_1_New,Template_RD8_New,myMOHE,myRA,awards,events,faculties,projects,staff,ip',
         ]);
 
-        $type = $request->type;
+        $type = $request->type ?? 'Template_RD8_1_New';
         $file = $request->file('file');
 
         try {
-            // Check if file is tab-separated or comma-separated
-            $firstLine = file($file->getPathname(), FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES)[0];
+            $fileLines = file($file->getPathname(), FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
+            if (empty($fileLines)) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Uploaded file is empty.',
+                ], 422);
+            }
+
+            $firstLine = $fileLines[0];
+
+            // Auto-detect template type if header columns match known formats
+            if (strpos($firstLine, 'Person_RefNo') !== false || strpos($firstLine, 'PersonTypeID') !== false || strpos($firstLine, 'FullName') !== false) {
+                $type = 'Template_RD8_1_New';
+            } elseif (strpos($firstLine, 'ExhibitionName') !== false || strpos($firstLine, 'ProjectTitle') !== false || strpos($firstLine, 'Invention_Award') !== false || strpos($firstLine, 'ExhibitionLevelID') !== false || strpos($firstLine, 'ExhibitionResultID') !== false) {
+                $type = 'Template_RD8_New';
+            }
+
             $isTabSeparated = strpos($firstLine, "\t") !== false;
 
             if ($isTabSeparated) {
                 // Parse tab-separated file
                 $csvData = array_map(function($line) {
                     return str_getcsv($line, "\t");
-                }, file($file->getPathname(), FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES));
+                }, $fileLines);
             } else {
                 // Parse comma-separated file
-                $csvData = array_map('str_getcsv', file($file->getPathname(), FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES));
+                $csvData = array_map('str_getcsv', $fileLines);
             }
 
             $headers = array_shift($csvData);
 
-            switch ($type) {
-                case 'Template_RD8_1_New':
-                    $this->importTemplateRD8_1_New($csvData);
-                    break;
-                case 'Template_RD8_New':
-                    $this->importMyRA($csvData);
-                    break;
-                case 'myMOHE':
-                    $this->importMyMOHE($csvData);
-                    break;
-                case 'myRA':
-                    $this->importMyRA($csvData);
-                    break;
-                case 'awards':
-                    $this->importAwards($csvData);
-                    break;
-                case 'events':
-                    $this->importEvents($csvData);
-                    break;
-                case 'faculties':
-                    $this->importFaculties($csvData);
-                    break;
-                case 'projects':
-                    $this->importProjects($csvData);
-                    break;
-                case 'staff':
-                    $this->importStaff($csvData);
-                    break;
-                case 'ip':
-                    $this->importIP($csvData);
-                    break;
-            }
+            // Wrap entire import inside database transaction to guarantee zero data inserted if any error occurs
+            $importedCount = DB::transaction(function () use ($type, $csvData) {
+                switch ($type) {
+                    case 'Template_RD8_1_New':
+                        return $this->importTemplateRD8_1_New($csvData);
+                    case 'Template_RD8_New':
+                        return $this->importTemplateRD8_New($csvData);
+                    case 'myMOHE':
+                        return $this->importMyMOHE($csvData);
+                    case 'myRA':
+                        return $this->importMyRA($csvData);
+                    case 'awards':
+                        return $this->importAwards($csvData);
+                    case 'events':
+                        return $this->importEvents($csvData);
+                    case 'faculties':
+                        return $this->importFaculties($csvData);
+                    case 'projects':
+                        return $this->importProjects($csvData);
+                    case 'staff':
+                        return $this->importStaff($csvData);
+                    case 'ip':
+                        return $this->importIP($csvData);
+                    default:
+                        return 0;
+                }
+            });
 
             return response()->json([
                 'success' => true,
-                'message' => 'Data imported successfully.',
-                'imported' => count($csvData),
+                'message' => 'All file data scanned & verified successfully. Data imported into database.',
+                'imported' => $importedCount ?? count($csvData),
             ]);
-        } catch (\Exception $e) {
+        } catch (\Throwable $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'Error importing data: ' . $e->getMessage(),
-            ], 500);
+                'message' => 'Validation error during import scan: ' . $e->getMessage() . '. No changes were saved to the database.',
+            ], 422);
         }
     }
 
     private function importTemplateRD8_1_New($data)
     {
         $importedCount = 0;
-        $skippedCount = 0;
 
-        foreach ($data as $row) {
+        foreach ($data as $index => $row) {
             // Skip empty rows
             if (empty(array_filter($row))) {
                 continue;
             }
 
-            // Map CSV columns to database fields
-            // Id_Recognation,ProjectID,Person_RefNo,PersonTypeID,FullName
-            $idRecognation = $row[0] ?? null;
-            $projectId = $row[1] ?? null;
-            $personRefNo = $row[2] ?? null;
-            $personTypeId = $row[3] ?? null;
-            $fullName = $row[4] ?? null;
+            // Map CSV columns: Id_Recognation, ProjectID, Person_RefNo, PersonTypeID, FullName
+            $idRecognation = trim($row[0] ?? '');
+            $projectId = trim($row[1] ?? '');
+            $personRefNo = trim($row[2] ?? '');
+            $personTypeId = trim($row[3] ?? '');
+            $fullName = trim($row[4] ?? '');
 
-            // Find or create project
-            $project = Project::where('project_id', $projectId)->first();
-            if (!$project && $projectId) {
-                $project = Project::create([
-                    'project_id' => $projectId,
-                    'project_title' => 'Imported Project ' . $projectId,
-                ]);
+            if (!$personRefNo || !$fullName) {
+                continue;
             }
 
-            // Find or create staff
+            // 1. Find or Create Staff
             $staff = Staff::where('staff_id', $personRefNo)->first();
-            if (!$staff && $personRefNo && $fullName) {
+            if (!$staff) {
                 $staff = Staff::create([
                     'staff_id' => $personRefNo,
                     'staff_name' => $fullName,
-                    'PersonTypeID' => $personTypeId ?? 1,
+                    'PersonTypeID' => is_numeric($personTypeId) ? (int)$personTypeId : 1,
                 ]);
+            } else {
+                if (empty($staff->staff_name) || $staff->staff_name === $personRefNo) {
+                    $staff->update(['staff_name' => $fullName]);
+                }
+                if (is_numeric($personTypeId) && !$staff->PersonTypeID) {
+                    $staff->update(['PersonTypeID' => (int)$personTypeId]);
+                }
             }
 
-            // Only create award if both project and staff exist
-            if ($project && $staff) {
-                // Check if award already exists for this project-staff combination
-                $existingAward = Award::where('project_id', $project->id)
-                    ->where('staff_id', $staff->id)
-                    ->first();
-
-                if (!$existingAward) {
-                    // Create new award record
-                    Award::create([
-                        'project_id' => $project->id,
-                        'staff_id' => $staff->id,
-                        'award_name' => 'Imported Award ' . $idRecognation,
-                        'award_level' => 'N/A',
-                        'award_type' => 'Imported',
-                        'award_date' => now(),
+            // 2. Find or Create Project (if valid project ID)
+            $project = null;
+            if ($projectId && strtoupper($projectId) !== 'TIADA') {
+                $project = Project::where('project_id', $projectId)->first();
+                if (!$project) {
+                    $project = Project::create([
+                        'project_id' => $projectId,
+                        'project_title' => 'Project ' . $projectId,
                     ]);
-                    $importedCount++;
-                } else {
-                    $skippedCount++;
                 }
+            }
+
+            // 3. Sync or Create Award record
+            $existingAward = null;
+            if ($project) {
+                // Look for an unassigned award under this project where staff is not yet assigned (created by Template_RD8_New)
+                $existingAward = Award::where('project_id', $project->id)
+                    ->whereNull('staff_id')
+                    ->first();
             } else {
-                $skippedCount++;
+                // For TIADA projects (where project_id is null)
+                $existingAward = Award::whereNull('project_id')
+                    ->whereNull('staff_id')
+                    ->first();
+            }
+
+            if ($existingAward) {
+                // Update existing unassigned award
+                $existingAward->update([
+                    'staff_id' => $staff->id,
+                    'project_id' => $project?->id ?? $existingAward->project_id,
+                    'award_level' => 'Individual',
+                    'award_type' => 'Exhibition',
+                ]);
+                $importedCount++;
+            } else {
+                // Create new award (competition details will be filled when Template_RD8_New is imported)
+                Award::create([
+                    'project_id' => $project?->id,
+                    'staff_id' => $staff->id,
+                    'award_name' => 'PENDING', // Default valid award level until Template_RD8_New updates with exact medal
+                    'award_level' => 'Individual',
+                    'award_type' => 'Exhibition',
+                    'award_date' => now(),
+                ]);
+                $importedCount++;
             }
         }
 
         \Log::info("Template_RD8_1_New Import", [
             'imported' => $importedCount,
-            'skipped' => $skippedCount,
             'total_rows' => count($data)
         ]);
+
+        return $importedCount;
     }
 
-    private function importAwards($data)
+    private function importTemplateRD8_New($data)
     {
-        foreach ($data as $row) {
-            Award::create([
-                'award_name' => $row[0] ?? null,
-                'award_level' => $row[1] ?? null,
-                'award_type' => $row[2] ?? null,
-                'award_date' => $row[3] ? date('Y-m-d', strtotime($row[3])) : null,
-                'evidence_document' => $row[4] ?? null,
-            ]);
-        }
-    }
+        $importedCount = 0;
 
-    private function importEvents($data)
-    {
-        foreach ($data as $row) {
-            Competition::create([
-                'event_name' => $row[0] ?? null,
-                'organizer' => $row[1] ?? null,
-                'exhibition_place' => $row[2] ?? null,
-                'exhibition_level' => $row[3] ?? null,
-                'start_date' => $row[4] ? date('Y-m-d', strtotime($row[4])) : null,
-                'end_date' => $row[5] ? date('Y-m-d', strtotime($row[5])) : null,
-            ]);
-        }
-    }
+        $levelMap = [
+            1 => 'International',
+            2 => 'National',
+            4 => 'University',
+        ];
 
-    private function importFaculties($data)
-    {
-        foreach ($data as $row) {
-            Faculty::create([
-                'faculty_code' => $row[0] ?? null,
-                'faculty_name' => $row[1] ?? null,
-            ]);
-        }
-    }
+        // Maps ExhibitionResultID to proper UPPERCASE award names for dashboard display
+        $resultAwardMap = [
+            1 => 'GOLD',
+            2 => 'GOLD',
+            3 => 'SILVER',
+            4 => 'SILVER',
+            5 => 'BRONZE',
+            6 => 'CERTIFICATE',
+            7 => 'PLATINUM',
+            8 => 'SPECIAL',
+            9 => 'SPECIAL',
+            999 => 'OTHERS',
+        ];
 
-    private function importProjects($data)
-    {
-        foreach ($data as $row) {
-            // Skip empty rows
+        foreach ($data as $index => $row) {
             if (empty(array_filter($row))) {
                 continue;
             }
 
-            $projectId = $row[0] ?? null;
-            $projectTitle = $row[1] ?? null;
+            // Map columns: Id_Recognation, ProjectID, ProjectTitle, ExhibitionName, ExhibitionLevelID, ExhibitionResultID, ExhibitionPlace, StartDate, EndDate, Amount, Invention_Award
+            $idRecognation = trim($row[0] ?? '');
+            $projectId = trim($row[1] ?? '');
+            $projectTitle = trim($row[2] ?? '');
+            $exhibitionName = trim($row[3] ?? '');
+            $exhibitionLevelId = is_numeric($row[4] ?? null) ? (int)$row[4] : null;
+            $exhibitionResultId = is_numeric($row[5] ?? null) ? (int)$row[5] : null;
+            $exhibitionPlace = trim($row[6] ?? '');
+            $startDateRaw = trim($row[7] ?? '');
+            $endDateRaw = trim($row[8] ?? '');
+            $amountRaw = trim($row[9] ?? '');
+            $inventionAward = trim($row[10] ?? '');
 
-            // Check if project already exists by project_id (as string)
-            $existingProject = Project::where('project_id', $projectId)->first();
-            
-            if ($existingProject) {
-                // Update existing project
-                $existingProject->update([
-                    'project_title' => $projectTitle,
-                ]);
-            } else {
-                // Create new project - project_id will be stored as string in database
-                // The database column should be varchar to support alphanumeric IDs
-                Project::create([
-                    'project_id' => $projectId,
-                    'project_title' => $projectTitle,
-                ]);
-            }
-        }
-    }
+            // Parse dates accurately
+            $parsedStartDate = $this->parseDate($startDateRaw);
+            $parsedEndDate = $this->parseDate($endDateRaw);
 
-    private function importStaff($data)
-    {
-        foreach ($data as $row) {
-            $faculty = Faculty::where('faculty_code', $row[2] ?? null)->first();
-            Staff::create([
-                'staff_id' => $row[0] ?? null,
-                'staff_name' => $row[1] ?? null,
-                'faculty_id' => $faculty ? $faculty->id : null,
-            ]);
-        }
-    }
+            // Clean numeric amount
+            $cleanAmount = $amountRaw ? (float)preg_replace('/[^0-9.]/', '', $amountRaw) : 0.00;
 
-    private function importMyMOHE($data)
-    {
-        foreach ($data as $row) {
-            // Skip empty rows
-            if (empty(array_filter($row))) {
-                continue;
+            // Determine exhibition level & award level strings
+            $exhibitionLevelName = $exhibitionLevelId ? ($levelMap[$exhibitionLevelId] ?? 'University') : 'University';
+            $awardName = $exhibitionResultId ? ($resultAwardMap[$exhibitionResultId] ?? 'OTHERS') : 'OTHERS';
+
+            // 1. Find or Create Project
+            $project = null;
+            if ($projectId && strtoupper($projectId) !== 'TIADA') {
+                $project = Project::where('project_id', $projectId)->first();
+                if ($project) {
+                    if ($projectTitle && (str_contains($project->project_title, 'Project ') || empty($project->project_title))) {
+                        $project->update(['project_title' => $projectTitle]);
+                    }
+                } else {
+                    $project = Project::create([
+                        'project_id' => $projectId,
+                        'project_title' => $projectTitle ?: ('Project ' . $projectId),
+                    ]);
+                }
             }
 
-            // Map CSV columns to database fields
-            // NO,PROJECT ID,PERSON REFF NO,STAFF NAME,FACULTY,NAME OF AWARD,LEVEL OF AWARD,TYPE OF AWARD,ORGANIZER,EXIBITION LEVEL,TITLE OF INVENTION,EVENT,DATE AWARDS (dd-mm-yyyy),LINK TO EVIDENCE
-            $projectId = $row[1] ?? null;
-            $staffId = $row[2] ?? null;
-            $staffName = $row[3] ?? null;
-            $facultyName = $row[4] ?? null;
-            $awardName = $row[5] ?? null;
-            $awardLevel = $row[6] ?? null;
-            $awardType = $row[7] ?? null;
-            $organizer = $row[8] ?? null;
-            $exhibitionLevel = $row[9] ?? null;
-            $projectTitle = $row[10] ?? null;
-            $eventName = $row[11] ?? null;
-            $awardDate = $row[12] ?? null;
-            $evidenceLink = $row[13] ?? null;
-
-            // Find or create faculty
-            $faculty = Faculty::where('faculty_name', $facultyName)->first();
-            if (!$faculty && $facultyName) {
-                $faculty = Faculty::create([
-                    'faculty_code' => strtoupper(substr(preg_replace('/[^A-Za-z0-9]/', '', $facultyName), 0, 5)),
-                    'faculty_name' => $facultyName,
-                ]);
-            }
-
-            // Find or create staff
-            $staff = Staff::where('staff_id', $staffId)->first();
-            if (!$staff && $staffId && $staffName) {
-                $staff = Staff::create([
-                    'staff_id' => $staffId,
-                    'staff_name' => $staffName,
-                    'faculty_id' => $faculty ? $faculty->id : null,
-                ]);
-            }
-
-            // Find or create project
-            $project = Project::where('project_id', $projectId)->first();
-            if (!$project && $projectId && $projectTitle) {
-                $project = Project::create([
-                    'project_id' => $projectId,
-                    'project_title' => $projectTitle,
-                ]);
-            }
-
-            // Find or create competition/event
-            $competition = Competition::where('event_name', $eventName)->first();
-            if (!$competition && $eventName) {
-                $competition = Competition::create([
-                    'event_name' => $eventName,
-                    'organizer' => $organizer,
-                    'exhibition_level' => $exhibitionLevel,
-                    'start_date' => $awardDate ? $this->parseDate($awardDate) : null,
-                    'end_date' => $awardDate ? $this->parseDate($awardDate) : null,
-                ]);
-            }
-
-            // Create award
-            Award::create([
-                'project_id' => $project ? $project->id : null,
-                'staff_id' => $staff ? $staff->id : null,
-                'competition_id' => $competition ? $competition->id : null,
-                'award_name' => $awardName,
-                'award_level' => $awardLevel,
-                'award_type' => $awardType,
-                'award_date' => $awardDate ? $this->parseDate($awardDate) : null,
-                'evidence_link' => $evidenceLink,
-            ]);
-        }
-    }
-
-    private function importMyRA($data)
-    {
-        foreach ($data as $row) {
-            // Skip empty rows
-            if (empty(array_filter($row))) {
-                continue;
-            }
-
-            // Map CSV columns to database fields
-            // No,ProjectID,ProjectTitle,ExhibitionName,ExhibitionLevelID,ExhibitionResultID,ExhibitionPlace,StartDate,EndDate,Amount,Invention_Award
-            $no = $row[0] ?? null;
-            $projectId = $row[1] ?? null;
-            $projectTitle = $row[2] ?? null;
-            $exhibitionName = $row[3] ?? null;
-            $exhibitionLevelId = $row[4] ?? null;
-            $exhibitionResultId = $row[5] ?? null;
-            $exhibitionPlace = $row[6] ?? null;
-            $startDate = $row[7] ?? null;
-            $endDate = $row[8] ?? null;
-            $amount = $row[9] ?? null;
-            $inventionAward = $row[10] ?? null;
-
-            // Find existing project by project_id
-            $project = Project::where('project_id', $projectId)->first();
-
-            // Find or create competition/event
+            // 2. Find or Create Competition / Event
             $competition = null;
             if ($exhibitionName) {
                 $competition = Competition::where('event_name', $exhibitionName)->first();
                 if (!$competition) {
                     $competition = Competition::create([
                         'event_name' => $exhibitionName,
-                        'exhibition_level_id' => $exhibitionLevelId,
-                        'exhibition_place' => $exhibitionPlace,
-                        'start_date' => $startDate ? date('Y-m-d', strtotime($startDate)) : null,
-                        'end_date' => $endDate ? date('Y-m-d', strtotime($endDate)) : null,
+                        'organizer' => $exhibitionName,
+                        'exhibition_level_id' => $exhibitionLevelId ?: 4,
+                        'exhibition_level' => $exhibitionLevelName,
+                        'exhibition_place' => $exhibitionPlace ?: null,
+                        'start_date' => $parsedStartDate,
+                        'end_date' => $parsedEndDate,
                     ]);
+                } else {
+                    $updateComp = [];
+                    if (!$competition->exhibition_level_id && $exhibitionLevelId) {
+                        $updateComp['exhibition_level_id'] = $exhibitionLevelId;
+                        $updateComp['exhibition_level'] = $exhibitionLevelName;
+                    }
+                    if (!$competition->exhibition_place && $exhibitionPlace) {
+                        $updateComp['exhibition_place'] = $exhibitionPlace;
+                    }
+                    if (!$competition->start_date && $parsedStartDate) {
+                        $updateComp['start_date'] = $parsedStartDate;
+                    }
+                    if (!$competition->end_date && $parsedEndDate) {
+                        $updateComp['end_date'] = $parsedEndDate;
+                    }
+                    if (!empty($updateComp)) {
+                        $competition->update($updateComp);
+                    }
                 }
             }
 
-            // Only create award if project exists
+            // 3. Sync or Create Award record
+            $existingAward = null;
             if ($project) {
-                // Check if award already exists for this project-competition combination
+                // Look for an unassigned award under this project where competition is not yet assigned (created by Template_RD8_1_New)
                 $existingAward = Award::where('project_id', $project->id)
-                    ->where('competition_id', $competition?->id)
+                    ->whereNull('competition_id')
                     ->first();
+            } else {
+                // For TIADA projects (where project is null)
+                $existingAward = Award::whereNull('project_id')
+                    ->whereNull('competition_id')
+                    ->first();
+            }
 
-                if (!$existingAward) {
-                    // Create new award record
-                    Award::create([
-                        'project_id' => $project->id,
-                        'competition_id' => $competition?->id,
-                        'exhibition_result_id' => $exhibitionResultId,
-                        'award_name' => $projectTitle ?? 'Imported Award',
-                        'amount' => $amount ? str_replace(['RM', ','], '', $amount) : null,
-                        'award_date' => $startDate ? date('Y-m-d', strtotime($startDate)) : now(),
-                    ]);
-                }
+            if ($existingAward) {
+                // Update existing award
+                $existingAward->update([
+                    'project_id' => $project?->id ?? $existingAward->project_id,
+                    'competition_id' => $competition?->id ?? $existingAward->competition_id,
+                    'exhibition_result_id' => $exhibitionResultId ?? $existingAward->exhibition_result_id,
+                    'award_name' => $awardName,
+                    'award_level' => 'Individual',
+                    'award_type' => 'Exhibition',
+                    'invention_award' => is_numeric($inventionAward) ? (int)$inventionAward : $existingAward->invention_award,
+                    'award_date' => $parsedStartDate ?? ($existingAward->award_date ?? now()),
+                    'amount' => $cleanAmount,
+                ]);
+                $importedCount++;
+            } else {
+                // Create new award
+                Award::create([
+                    'project_id' => $project?->id,
+                    'competition_id' => $competition?->id,
+                    'exhibition_result_id' => $exhibitionResultId,
+                    'award_name' => $awardName,
+                    'award_level' => 'Individual',
+                    'award_type' => 'Exhibition',
+                    'invention_award' => is_numeric($inventionAward) ? (int)$inventionAward : null,
+                    'award_date' => $parsedStartDate ?? now(),
+                    'amount' => $cleanAmount,
+                ]);
+                $importedCount++;
             }
         }
+
+        return $importedCount;
     }
 
     private function parseDate($dateString)
@@ -456,15 +424,26 @@ class ImportController extends Controller
             return null;
         }
 
-        // Try dd-mm-yyyy format
-        if (preg_match('/^(\d{1,2})-(\d{1,2})-(\d{4})$/', $dateString, $matches)) {
-            return "{$matches[3]}-{$matches[2]}-{$matches[1]}"; // Convert to yyyy-mm-dd
+        $dateString = trim($dateString);
+
+        // Try yyyy-mm-dd format (e.g. 2026-01-16)
+        if (preg_match('/^(\d{4})-(\d{1,2})-(\d{1,2})$/', $dateString, $matches)) {
+            return sprintf('%04d-%02d-%02d', $matches[1], $matches[2], $matches[3]);
         }
 
-        // Try other formats
+        // Try dd-mm-yyyy format (e.g. 16-01-2026 or 01-07-2025)
+        if (preg_match('/^(\d{1,2})-(\d{1,2})-(\d{4})$/', $dateString, $matches)) {
+            return sprintf('%04d-%02d-%02d', $matches[3], $matches[2], $matches[1]);
+        }
+
+        // Try dd/mm/yyyy format
+        if (preg_match('/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/', $dateString, $matches)) {
+            return sprintf('%04d-%02d-%02d', $matches[3], $matches[2], $matches[1]);
+        }
+
         try {
             return date('Y-m-d', strtotime($dateString));
-        } catch (\Exception $e) {
+        } catch (\Throwable $e) {
             return null;
         }
     }
@@ -526,9 +505,16 @@ class ImportController extends Controller
                     'title' => $title,
                     'type' => $type,
                     'status' => $status,
+                    'category' => $type,
+                    'status_produk' => $status,
+                    'nama_produk' => $title,
+                    'no_pemfailan' => $ipNumber,
+                    'jenis_ipr' => $type,
                     'filing_date' => $filingDate,
+                    'tarikh_difailkan' => $filingDate,
                     'grant_date' => $grantDate,
                     'expiry_date' => $expiryDate,
+                    'tarikh_luput' => $expiryDate,
                     'country' => $country,
                     'link_to_evidence' => $evidenceUrl,
                     'remarks' => $remarks,
@@ -551,5 +537,265 @@ class ImportController extends Controller
             'skipped' => $skippedCount,
             'total_rows' => count($data)
         ]);
+
+        return $importedCount;
+    }
+
+    private function importMyMOHE($data)
+    {
+        $importedCount = 0;
+
+        foreach ($data as $row) {
+            if (empty(array_filter($row))) {
+                continue;
+            }
+
+            // Columns: NO,PROJECT ID,STAFF ID,STAFF NAME,FACULTY,NAME OF AWARD,LEVEL OF AWARD,TYPE OF AWARD,ORGANIZER,EXIBITION LEVEL,TITLE OF INVENTION,EVENT,DATE AWARDS,LINK TO EVIDENCE
+            $projectIdStr = trim($row[1] ?? '');
+            $staffIdStr = trim($row[2] ?? '');
+            $staffName = trim($row[3] ?? '');
+            $facultyStr = trim($row[4] ?? '');
+            $awardName = trim($row[5] ?? '');
+            $awardLevel = trim($row[6] ?? '');
+            $awardType = trim($row[7] ?? '');
+            $organizer = trim($row[8] ?? '');
+            $exhibitionLevelStr = trim($row[9] ?? '');
+            $titleInvention = trim($row[10] ?? '');
+            $eventName = trim($row[11] ?? '');
+            $dateAwardsRaw = trim($row[12] ?? '');
+            $evidenceDoc = trim($row[13] ?? '');
+
+            // Faculty lookup (leave NULL if missing or not found)
+            $facultyId = null;
+            if ($facultyStr) {
+                $facultyObj = Faculty::where('faculty_code', $facultyStr)->orWhere('faculty_name', $facultyStr)->first();
+                $facultyId = $facultyObj?->id;
+            }
+
+            // Staff lookup/create (leave faculty_id null if missing)
+            $staff = null;
+            if ($staffIdStr) {
+                $staff = Staff::where('staff_id', $staffIdStr)->first();
+                if (!$staff) {
+                    $staff = Staff::create([
+                        'staff_id' => $staffIdStr,
+                        'staff_name' => $staffName ?: $staffIdStr,
+                        'faculty_id' => $facultyId ?: null,
+                    ]);
+                } elseif ($facultyId && !$staff->faculty_id) {
+                    $staff->update(['faculty_id' => $facultyId]);
+                }
+            }
+
+            // Project lookup/create
+            $project = null;
+            if ($projectIdStr && strtoupper($projectIdStr) !== 'TIADA') {
+                $project = Project::where('project_id', $projectIdStr)->first();
+                if (!$project) {
+                    $project = Project::create([
+                        'project_id' => $projectIdStr,
+                        'project_title' => $titleInvention ?: ('Project ' . $projectIdStr),
+                    ]);
+                }
+            }
+
+            // Competition lookup/create
+            $competition = null;
+            if ($eventName) {
+                $competition = Competition::where('event_name', $eventName)->first();
+                if (!$competition) {
+                    $competition = Competition::create([
+                        'event_name' => $eventName,
+                        'organizer' => $organizer ?: $eventName,
+                        'exhibition_level' => $exhibitionLevelStr ?: 'University',
+                    ]);
+                }
+            }
+
+            $parsedDate = $this->parseDate($dateAwardsRaw);
+
+            // Create Award record
+            Award::create([
+                'project_id' => $project?->id ?: null,
+                'staff_id' => $staff?->id ?: null,
+                'competition_id' => $competition?->id ?: null,
+                'award_name' => $awardName ?: ($titleInvention ?: 'Imported Award'),
+                'award_level' => $awardLevel ?: 'Gold',
+                'award_type' => $awardType ?: 'Research Award',
+                'award_date' => $parsedDate ?: now(),
+                'evidence_document' => $evidenceDoc ?: null,
+            ]);
+
+            $importedCount++;
+        }
+
+        return $importedCount;
+    }
+
+    private function importAwards($data)
+    {
+        $importedCount = 0;
+
+        foreach ($data as $row) {
+            if (empty(array_filter($row))) {
+                continue;
+            }
+
+            // Columns: award_name, award_level, award_type, award_date, evidence_document
+            $awardName = trim($row[0] ?? '');
+            $awardLevel = trim($row[1] ?? '');
+            $awardType = trim($row[2] ?? '');
+            $awardDateRaw = trim($row[3] ?? '');
+            $evidenceDoc = trim($row[4] ?? '');
+
+            if (!$awardName) {
+                continue;
+            }
+
+            Award::create([
+                'award_name' => $awardName,
+                'award_level' => $awardLevel ?: null,
+                'award_type' => $awardType ?: 'Research Award',
+                'award_date' => $this->parseDate($awardDateRaw) ?: now(),
+                'evidence_document' => $evidenceDoc ?: null,
+            ]);
+
+            $importedCount++;
+        }
+
+        return $importedCount;
+    }
+
+    private function importEvents($data)
+    {
+        $importedCount = 0;
+
+        foreach ($data as $row) {
+            if (empty(array_filter($row))) {
+                continue;
+            }
+
+            // Columns: event_name, organizer, exhibition_place, exhibition_level, start_date, end_date
+            $eventName = trim($row[0] ?? '');
+            $organizer = trim($row[1] ?? '');
+            $place = trim($row[2] ?? '');
+            $level = trim($row[3] ?? '');
+            $startDate = trim($row[4] ?? '');
+            $endDate = trim($row[5] ?? '');
+
+            if (!$eventName) {
+                continue;
+            }
+
+            Competition::updateOrCreate(
+                ['event_name' => $eventName],
+                [
+                    'organizer' => $organizer ?: null,
+                    'exhibition_place' => $place ?: null,
+                    'exhibition_level' => $level ?: null,
+                    'start_date' => $this->parseDate($startDate),
+                    'end_date' => $this->parseDate($endDate),
+                ]
+            );
+
+            $importedCount++;
+        }
+
+        return $importedCount;
+    }
+
+    private function importFaculties($data)
+    {
+        $importedCount = 0;
+
+        foreach ($data as $row) {
+            if (empty(array_filter($row))) {
+                continue;
+            }
+
+            // Columns: faculty_code, faculty_name
+            $code = trim($row[0] ?? '');
+            $name = trim($row[1] ?? '');
+
+            if (!$code && !$name) {
+                continue;
+            }
+
+            Faculty::updateOrCreate(
+                ['faculty_code' => $code],
+                ['faculty_name' => $name ?: $code]
+            );
+
+            $importedCount++;
+        }
+
+        return $importedCount;
+    }
+
+    private function importProjects($data)
+    {
+        $importedCount = 0;
+
+        foreach ($data as $row) {
+            if (empty(array_filter($row))) {
+                continue;
+            }
+
+            // Columns: project_id, project_title
+            $projId = trim($row[0] ?? '');
+            $projTitle = trim($row[1] ?? '');
+
+            if (!$projId) {
+                continue;
+            }
+
+            Project::updateOrCreate(
+                ['project_id' => $projId],
+                ['project_title' => $projTitle ?: ('Project ' . $projId)]
+            );
+
+            $importedCount++;
+        }
+
+        return $importedCount;
+    }
+
+    private function importStaff($data)
+    {
+        $importedCount = 0;
+
+        foreach ($data as $row) {
+            if (empty(array_filter($row))) {
+                continue;
+            }
+
+            // Columns: staff_id, staff_name, faculty_code
+            $staffId = trim($row[0] ?? '');
+            $staffName = trim($row[1] ?? '');
+            $facCode = trim($row[2] ?? '');
+
+            if (!$staffId) {
+                continue;
+            }
+
+            $facultyId = null;
+            if ($facCode) {
+                $fac = Faculty::where('faculty_code', $facCode)->orWhere('faculty_name', $facCode)->first();
+                $facultyId = $fac?->id;
+            }
+
+            Staff::updateOrCreate(
+                ['staff_id' => $staffId],
+                [
+                    'staff_name' => $staffName ?: $staffId,
+                    'faculty_id' => $facultyId ?: null, // leaves null if faculty is not provided
+                ]
+            );
+
+            $importedCount++;
+        }
+
+        return $importedCount;
     }
 }
+

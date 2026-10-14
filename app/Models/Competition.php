@@ -17,6 +17,7 @@ class Competition extends Model
         'organizer',
         'exhibition_place',
         'exhibition_level',
+        'exhibition_level_id',
         'start_date',
         'end_date',
     ];
@@ -68,6 +69,14 @@ class Competition extends Model
     public function awards()
     {
         return $this->hasMany(Award::class);
+    }
+
+    /**
+     * Get the exhibition level for this competition.
+     */
+    public function exhibitionLevel()
+    {
+        return $this->belongsTo(ExhibitionLevel::class, 'exhibition_level_id', 'ExhibitionLevelID');
     }
 
     /**

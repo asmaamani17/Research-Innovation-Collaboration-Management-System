@@ -10,6 +10,8 @@ use App\Models\KpiPhase;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
+use Maatwebsite\Excel\Facades\Excel;
+use App\Exports\KpiExport;
 
 class KpiController extends Controller
 {
@@ -23,10 +25,8 @@ class KpiController extends Controller
                 abort(403, 'Unauthorized access');
             }
             
-            $isSuperadmin = $user->role === 'super_admin';
-            $hasKpiModule = $user->modules()->where('module_name', 'KPI')->exists();
-            
-            if (!$isSuperadmin && !$hasKpiModule) {
+            // Use the hasRole method from User model for consistent role checking
+            if (!$user->hasRole(['superadmin', 'super_admin']) && !$user->modules()->where('module_name', 'KPI')->exists()) {
                 abort(403, 'Unauthorized access');
             }
             
@@ -39,8 +39,17 @@ class KpiController extends Controller
         $strategies = KpiStrategy::ordered()->with(['kpiRecords.kpiYears.phases'])->get();
         $years = [2026, 2027, 2028, 2029, 2030];
         $currentYear = request('year', 2026);
+        
+        // Get strategies for filter
+        $strategyOptions = KpiStrategy::orderBy('display_order')->get();
+        
+        // Filter by strategy if selected
+        $selectedStrategy = request('strategy');
+        if ($selectedStrategy) {
+            $strategies = $strategies->where('strategy_code', $selectedStrategy);
+        }
 
-        return view('admin.kpi.index', compact('strategies', 'years', 'currentYear'));
+        return view('admin.kpi.index', compact('strategies', 'years', 'currentYear', 'strategyOptions'));
     }
 
     public function edit()
@@ -123,6 +132,12 @@ class KpiController extends Controller
     public function updateKpi(Request $request)
     {
         try {
+            // Check if bulk update (changes array) or single update
+            if ($request->has('changes')) {
+                return $this->bulkUpdateKpi($request);
+            }
+            
+            // Single update (backward compatibility)
             $kpiCode = $request->input('kpi_code');
             $year = $request->input('year');
             $field = $request->input('field');
@@ -135,6 +150,17 @@ class KpiController extends Controller
 
             if ($field === 'initiative' || $field === 'performance_indicator' || $field === 'action_plan') {
                 $kpi->update([$field => $value]);
+            } elseif ($field === 'achievement_information') {
+                $kpiYear = KpiYear::where('kpi_id', $kpi->id)->where('target_year', $year)->first();
+                if (!$kpiYear) {
+                    $kpiYear = KpiYear::create([
+                        'kpi_id' => $kpi->id,
+                        'target_year' => $year,
+                        'achievement_information' => $value
+                    ]);
+                } else {
+                    $kpiYear->update(['achievement_information' => $value]);
+                }
             } else {
                 $kpiYear = KpiYear::where('kpi_id', $kpi->id)->where('target_year', $year)->first();
                 if (!$kpiYear) {
@@ -150,6 +176,91 @@ class KpiController extends Controller
 
             return response()->json(['success' => true]);
         } catch (\Exception $e) {
+            return response()->json(['success' => false, 'error' => $e->getMessage()], 500);
+        }
+    }
+
+    private function bulkUpdateKpi(Request $request)
+    {
+        try {
+            $changes = $request->input('changes', []);
+            
+            DB::beginTransaction();
+            
+            foreach ($changes as $change) {
+                $kpiCode = $change['kpi_code'];
+                $year = $change['year'];
+                $field = $change['field'];
+                $value = $change['value'];
+
+                $kpi = KpiRecord::where('kpi_code', $kpiCode)->first();
+                if (!$kpi) {
+                    throw new \Exception("KPI not found: {$kpiCode}");
+                }
+
+                if ($field === 'initiative' || $field === 'performance_indicator' || $field === 'action_plan') {
+                    $kpi->update([$field => $value]);
+                } elseif ($field === 'achievement_information') {
+                    $kpiYear = KpiYear::where('kpi_id', $kpi->id)->where('target_year', $year)->first();
+                    if (!$kpiYear) {
+                        $kpiYear = KpiYear::create([
+                            'kpi_id' => $kpi->id,
+                            'target_year' => $year,
+                            'achievement_information' => $value
+                        ]);
+                    } else {
+                        $kpiYear->update(['achievement_information' => $value]);
+                    }
+                } elseif (str_starts_with($field, 'phase')) {
+                    $kpiYear = KpiYear::where('kpi_id', $kpi->id)->where('target_year', $year)->first();
+                    if (!$kpiYear) {
+                        $kpiYear = KpiYear::create([
+                            'kpi_id' => $kpi->id,
+                            'target_year' => $year
+                        ]);
+                    }
+
+                    $phaseMap = [
+                        'phase1' => 'Phase 1',
+                        'phase2' => 'Phase 2',
+                        'phase3' => 'Phase 3',
+                        'phase4' => 'Phase 4'
+                    ];
+                    
+                    $phase = $phaseMap[$field] ?? $field;
+                    
+                    $kpiPhase = KpiPhase::where('kpi_year_id', $kpiYear->id)->where('phase', $phase)->first();
+                    if (!$kpiPhase) {
+                        KpiPhase::create([
+                            'kpi_year_id' => $kpiYear->id,
+                            'phase' => $phase,
+                            'achievement' => $value
+                        ]);
+                    } else {
+                        $kpiPhase->update(['achievement' => $value]);
+                    }
+
+                    // Recalculate achievement percentage
+                    $this->recalculateAchievement($kpiYear);
+                } else {
+                    $kpiYear = KpiYear::where('kpi_id', $kpi->id)->where('target_year', $year)->first();
+                    if (!$kpiYear) {
+                        $kpiYear = KpiYear::create([
+                            'kpi_id' => $kpi->id,
+                            'target_year' => $year,
+                            $field => $value
+                        ]);
+                    } else {
+                        $kpiYear->update([$field => $value]);
+                    }
+                }
+            }
+            
+            DB::commit();
+
+            return response()->json(['success' => true, 'message' => 'Data berjaya disimpan']);
+        } catch (\Exception $e) {
+            DB::rollBack();
             return response()->json(['success' => false, 'error' => $e->getMessage()], 500);
         }
     }
@@ -230,46 +341,7 @@ class KpiController extends Controller
     public function export(Request $request)
     {
         $year = $request->get('year', 2026);
-        $strategies = KpiStrategy::ordered()->with([
-            'kpiRecords.kpiYears' => function ($query) use ($year) {
-                $query->where('target_year', $year)->with('phases');
-            }
-        ])->get();
-
-        $csv = "STRATEGY_CODE,STRATEGY_NAME,KPI_CODE,INITIATIVE,PERFORMANCE_INDICATOR,ACTION_PLAN,TARGET_YEAR,TARGET_VALUE,PHASE_1,PHASE_2,PHASE_3,PHASE_4,ACHIEVEMENT_PERCENTAGE,ACHIEVEMENT_INFORMATION\n";
-
-        foreach ($strategies as $strategy) {
-            foreach ($strategy->kpiRecords as $kpi) {
-                $kpiYear = $kpi->kpiYears->first();
-                $phases = $kpiYear ? $kpiYear->phases->keyBy('phase') : collect();
-
-                $row = [
-                    $strategy->strategy_code,
-                    $strategy->strategy_name,
-                    $kpi->kpi_code,
-                    $kpi->initiative,
-                    is_array($kpi->performance_indicator) ? implode('; ', $kpi->performance_indicator) : $kpi->performance_indicator,
-                    is_array($kpi->action_plan) ? implode('; ', $kpi->action_plan) : $kpi->action_plan,
-                    $year,
-                    $kpiYear ? $kpiYear->target_value : '',
-                    $phases->get('Phase 1')?->achievement ?? '',
-                    $phases->get('Phase 2')?->achievement ?? '',
-                    $phases->get('Phase 3')?->achievement ?? '',
-                    $phases->get('Phase 4')?->achievement ?? '',
-                    $kpiYear ? $kpiYear->achievement_percentage : '',
-                    $kpiYear ? $kpiYear->achievement_information : '',
-                ];
-
-                $csv .= implode(',', array_map(function ($val) {
-                    return '"' . str_replace('"', '""', $val) . '"';
-                }, $row)) . "\n";
-            }
-        }
-
-        $filename = "kpi_export_{$year}.csv";
-
-        return response($csv)
-            ->header('Content-Type', 'text/csv')
-            ->header('Content-Disposition', "attachment; filename=\"$filename\"");
+        
+        return Excel::download(new KpiExport($year), 'KPI_Data_Strategi_' . $year . '.xlsx');
     }
 }

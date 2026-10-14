@@ -120,20 +120,49 @@ class ProjectController extends Controller
     {
         $project = Project::with([
             'awards' => function ($query) {
-                $query->with(['staff.faculty', 'event'])->orderBy('created_at', 'desc');
+                $query->with(['staff.faculty', 'competition', 'exhibitionResult'])->orderBy('created_at', 'desc');
             },
             'staff' => function ($query) {
                 $query->with('faculty')->withCount('awards');
             }
         ])->findOrFail($id);
 
-        // Calculate project statistics
+        // Calculate project statistics (case-insensitive matching)
+        // Check award_level, award_name, and exhibition_result.Description fields
+        // Support both English (Gold, Silver, Bronze) and Malay (Emas, Perak, Gangsa)
         $stats = [
             'total_awards' => $project->awards->count(),
             'unique_staff' => $project->staff->count(),
-            'gold_awards' => $project->awards->where('award_level', 'Gold')->count(),
-            'silver_awards' => $project->awards->where('award_level', 'Silver')->count(),
-            'bronze_awards' => $project->awards->where('award_level', 'Bronze')->count(),
+            'gold_awards' => $project->awards->filter(function($a) {
+                $level = strtoupper($a->award_level ?? '');
+                $name = strtoupper($a->award_name ?? '');
+                $result = strtoupper($a->exhibitionResult->Description ?? '');
+                return $level === 'GOLD' || str_contains($name, 'GOLD') || str_contains($result, 'EMAS');
+            })->count(),
+            'silver_awards' => $project->awards->filter(function($a) {
+                $level = strtoupper($a->award_level ?? '');
+                $name = strtoupper($a->award_name ?? '');
+                $result = strtoupper($a->exhibitionResult->Description ?? '');
+                return $level === 'SILVER' || str_contains($name, 'SILVER') || str_contains($result, 'PERAK');
+            })->count(),
+            'bronze_awards' => $project->awards->filter(function($a) {
+                $level = strtoupper($a->award_level ?? '');
+                $name = strtoupper($a->award_name ?? '');
+                $result = strtoupper($a->exhibitionResult->Description ?? '');
+                return $level === 'BRONZE' || str_contains($name, 'BRONZE') || str_contains($result, 'GANGSA');
+            })->count(),
+            'platinum_awards' => $project->awards->filter(function($a) {
+                $level = strtoupper($a->award_level ?? '');
+                $name = strtoupper($a->award_name ?? '');
+                $result = strtoupper($a->exhibitionResult->Description ?? '');
+                return $level === 'PLATINUM' || str_contains($name, 'PLATINUM') || str_contains($result, 'PLATINUM');
+            })->count(),
+            'special_awards' => $project->awards->filter(function($a) {
+                $level = strtoupper($a->award_level ?? '');
+                $name = strtoupper($a->award_name ?? '');
+                $result = strtoupper($a->exhibitionResult->Description ?? '');
+                return $level === 'SPECIAL' || str_contains($name, 'SPECIAL') || str_contains($result, 'ANUGERAH KHAS');
+            })->count(),
             'faculties_involved' => $project->staff->pluck('faculty.id')->unique()->count(),
         ];
 
@@ -147,7 +176,7 @@ class ProjectController extends Controller
                 'award_name' => $award->award_name,
                 'level' => $award->award_level,
                 'staff_name' => $award->staff->staff_name,
-                'event_name' => $award->event->event_name,
+                'event_name' => $award->competition->event_name ?? null,
             ];
         });
 

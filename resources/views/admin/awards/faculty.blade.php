@@ -33,33 +33,22 @@
             </div>
         @endif
 
-        <!-- Table Controls -->
-        <form method="GET" action="{{ route('admin.faculty.index') }}" class="mb-4">
-            <div class="bg-white border border-divider-subtle/30 rounded-xl p-2 flex items-center gap-4">
-                <div class="flex-1 relative">
-                    <div class="absolute inset-y-0 left-0 flex items-center pl-4 pointer-events-none text-divider-subtle">
-                        <span class="material-symbols-outlined">search</span>
-                    </div>
-                    <input 
-                        type="text"
-                        name="search" 
-                        value="{{ request('search') }}"
-                        class="w-full h-11 pl-12 pr-4 bg-background-light border-none rounded-lg focus:ring-2 focus:ring-primary text-sm text-text-main placeholder:text-divider-subtle" 
-                        placeholder="Search faculties by name or code..." 
-                    />
+        <!-- Filters -->
+        <div class="bg-white border border-divider-subtle/30 rounded-xl p-6 mb-6 shadow-sm">
+            <div class="flex flex-wrap gap-4">
+                <div class="flex-1 min-w-[200px]">
+                    <input type="text" id="search" placeholder="Search faculties by name or code..."
+                        class="w-full px-4 py-3 border border-divider-subtle/30 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all"
+                        value="{{ request('search') }}">
                 </div>
-                <button type="submit" class="h-11 px-4 flex items-center gap-2 border border-divider-subtle/40 rounded-lg text-sm font-medium text-text-main hover:bg-background-light transition-colors">
-                    <span class="material-symbols-outlined text-lg">filter_list</span>
+                <button onclick="applyFilters()" class="px-6 py-3 bg-primary text-white rounded-lg font-bold hover:bg-primary/90 transition-all">
                     Filter
                 </button>
-                @if(request('search'))
-                    <a href="{{ route('admin.faculty.index') }}" class="h-11 px-4 flex items-center gap-2 border border-divider-subtle/40 rounded-lg text-sm font-medium text-text-main hover:bg-background-light transition-colors">
-                        <span class="material-symbols-outlined text-lg">clear</span>
-                        Clear
-                    </a>
-                @endif
+                <button onclick="clearFilters()" class="px-6 py-3 bg-gray-200 text-gray-700 rounded-lg font-bold hover:bg-gray-300 transition-all">
+                    Clear
+                </button>
             </div>
-        </form>
+        </div>
 
         <!-- Data Table Section -->
         <div class="bg-white border border-divider-subtle/30 rounded-xl overflow-hidden shadow-sm">
@@ -166,12 +155,92 @@
             </div>
         </div>
     </div>
+
+    <!-- Add Faculty Modal -->
+    <div id="addFacultyModal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4">
+        <div class="w-full max-w-lg rounded-xl bg-white p-6 shadow-xl">
+            <div class="mb-6 flex items-center justify-between">
+                <h3 class="text-xl font-bold text-text-main">Add Faculty</h3>
+                <button type="button" onclick="closeAddFacultyModal()" class="text-divider-subtle hover:text-text-main" aria-label="Close">
+                    <span class="material-symbols-outlined">close</span>
+                </button>
+            </div>
+            <form id="addFacultyForm" method="POST" action="{{ route('admin.faculty.store') }}" class="space-y-4">
+                @csrf
+                <div>
+                    <label for="faculty_code" class="mb-1 block text-sm font-semibold text-text-main">Faculty Code</label>
+                    <input id="faculty_code" name="faculty_code" type="text" value="{{ old('faculty_code') }}" required maxlength="20"
+                        class="w-full rounded-lg border border-divider-subtle/40 px-4 py-3 text-sm focus:border-primary focus:ring-primary">
+                    @error('faculty_code')
+                        <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                    @enderror
+                </div>
+                <div>
+                    <label for="faculty_name" class="mb-1 block text-sm font-semibold text-text-main">Faculty Name</label>
+                    <input id="faculty_name" name="faculty_name" type="text" value="{{ old('faculty_name') }}" required maxlength="100"
+                        class="w-full rounded-lg border border-divider-subtle/40 px-4 py-3 text-sm focus:border-primary focus:ring-primary">
+                    @error('faculty_name')
+                        <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                    @enderror
+                </div>
+                <div class="flex justify-end gap-3 pt-2">
+                    <button type="button" onclick="closeAddFacultyModal()" class="rounded-lg border border-divider-subtle/40 px-4 py-2 text-sm font-semibold text-text-main hover:bg-background-light">Cancel</button>
+                    <button type="submit" class="rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-white hover:bg-primary/90">Save Faculty</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Edit Faculty Modal -->
+    <div id="editFacultyModal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4">
+        <div class="w-full max-w-lg rounded-xl bg-white p-6 shadow-xl">
+            <div class="mb-6 flex items-center justify-between">
+                <h3 class="text-xl font-bold text-text-main">Edit Faculty</h3>
+                <button type="button" onclick="closeEditFacultyModal()" class="text-divider-subtle hover:text-text-main" aria-label="Close">
+                    <span class="material-symbols-outlined">close</span>
+                </button>
+            </div>
+            <form id="editFacultyForm" method="POST" class="space-y-4">
+                @csrf
+                @method('PUT')
+                <input id="edit_faculty_id" type="hidden" name="id">
+                <div>
+                    <label for="edit_faculty_code" class="mb-1 block text-sm font-semibold text-text-main">Faculty Code</label>
+                    <input id="edit_faculty_code" name="faculty_code" type="text" required maxlength="20"
+                        class="w-full rounded-lg border border-divider-subtle/40 px-4 py-3 text-sm focus:border-primary focus:ring-primary">
+                </div>
+                <div>
+                    <label for="edit_faculty_name" class="mb-1 block text-sm font-semibold text-text-main">Faculty Name</label>
+                    <input id="edit_faculty_name" name="faculty_name" type="text" required maxlength="100"
+                        class="w-full rounded-lg border border-divider-subtle/40 px-4 py-3 text-sm focus:border-primary focus:ring-primary">
+                </div>
+                <div class="flex justify-end gap-3 pt-2">
+                    <button type="button" onclick="closeEditFacultyModal()" class="rounded-lg border border-divider-subtle/40 px-4 py-2 text-sm font-semibold text-text-main hover:bg-background-light">Cancel</button>
+                    <button type="submit" class="rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-white hover:bg-primary/90">Update Faculty</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
 @endsection
 
 @push('scripts')
 <script>
     const facultyUpdateUrlTemplate = @json(route('admin.faculty.update', ['id' => '__ID__']));
     const facultyStoreUrl = @json(route('admin.faculty.store'));
+
+    function applyFilters() {
+        const search = document.getElementById('search').value;
+
+        const params = new URLSearchParams();
+        if (search) params.append('search', search);
+
+        window.location.href = `{{ route('admin.faculty.index') }}?${params.toString()}`;
+    }
+
+    function clearFilters() {
+        window.location.href = '{{ route('admin.faculty.index') }}';
+    }
 
     function openAddFacultyModal() {
         document.getElementById('addFacultyModal').classList.remove('hidden');
