@@ -1,6 +1,6 @@
 @extends('layouts.main')
 
-@section('title', 'Login System | Research, Innovation & Collaboration Management')
+@section('title', 'Login System')
 
 @section('content')
     <div class="w-full max-w-[700px]">
@@ -31,8 +31,8 @@
                     <div class="welcome-content">
                         <h2>Welcome to Research, Innovation &amp; Collaboration Management System</h2>
                         <p>
-                            Manage research awards, discover funding opportunities, track application progress,
-                            and connect with collaborators through one platform that supports your research journey.
+                            Manage research records, track awards and innovation outcomes, monitor community programs,
+                            and review performance through one integrated platform for RICMS research teams.
                         </p>
                     </div>
 
@@ -48,6 +48,10 @@
 
                 <form class="login-form" method="POST" action="{{ route('login') }}">
                     @csrf
+
+                    @if (session('status'))
+                        <div class="login-success" role="status">{{ session('status') }}</div>
+                    @endif
 
                     @if ($errors->any())
                         <div class="login-error" role="alert">
@@ -853,6 +857,16 @@
             border-radius: 8px;
             background: #fef2f2;
             color: #b42318;
+            font-size: 11px;
+            line-height: 1.5;
+        }
+
+        .login-success {
+            padding: 10px 12px;
+            border: 1px solid #a7f3d0;
+            border-radius: 8px;
+            background: #ecfdf5;
+            color: #166534;
             font-size: 11px;
             line-height: 1.5;
         }

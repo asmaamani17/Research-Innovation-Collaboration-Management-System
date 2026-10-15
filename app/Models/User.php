@@ -79,7 +79,7 @@ class User extends Authenticatable
 
     public function hasModule(string $moduleName): bool
     {
-        if ($this->role === 'superadmin') {
+        if (in_array($this->role, ['superadmin', 'super_admin'], true)) {
             return true;
         }
 

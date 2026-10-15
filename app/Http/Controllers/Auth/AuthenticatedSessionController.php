@@ -29,20 +29,26 @@ class AuthenticatedSessionController extends Controller
 
         $request->session()->regenerate();
 
-        // KPI admin should go to KPI index
-        if ($request->user()->ic === '883456789013') {
-            return redirect()->intended(route('admin.kpi.index'));
-        }
-
         // Superadmin should go to superadmin dashboard
         if ($request->user()->hasRole('superadmin') || $request->user()->hasRole('super_admin')) {
             session(['workspace' => 'superadmin']);
             return redirect()->intended(route('superadmin.dashboard'));
         }
 
-        if ($request->user()->hasRole('admin')) {
-            session(['workspace' => 'awards']);
-            return redirect()->intended(route('admin.dashboard'));
+        if ($request->user()->hasRole(['admin', 'staff'])) {
+            $moduleLandingRoutes = [
+                'KPI' => 'admin.kpi.index',
+                'Awards' => 'admin.awards.dashboard',
+                'Products' => 'admin.products.index',
+                'Intellectual Property' => 'admin.ip.dashboard',
+                'Community/STEM/Industry' => 'admin.stem.dashboard',
+            ];
+
+            foreach ($moduleLandingRoutes as $module => $route) {
+                if ($request->user()->hasModule($module)) {
+                    return redirect()->route($route);
+                }
+            }
         }
 
         return redirect()->intended(RouteServiceProvider::HOME);

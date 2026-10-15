@@ -73,9 +73,9 @@
                 <!-- Password -->
                 <div>
                     <label for="password" class="block text-xs font-semibold text-text-main uppercase tracking-wider mb-2">New Password (Leave blank to keep existing)</label>
-                    <input type="password" name="password" id="password"
+                    <input type="password" name="password" id="password" minlength="12"
                         class="w-full px-4 py-2.5 bg-background-light border border-divider-subtle/30 rounded-lg text-sm focus:outline-none focus:border-primary text-text-main"
-                        placeholder="Leave blank to keep current password">
+                        placeholder="At least 12 characters; leave blank to keep current password">
                 </div>
 
                 <!-- System Role -->

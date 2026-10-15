@@ -9,6 +9,7 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\Rules\Password;
 
 class UserController extends Controller
 {
@@ -65,7 +66,7 @@ class UserController extends Controller
             'name' => 'required|string|max:100',
             'ic' => 'required|string|max:100|unique:users,ic',
             'email' => 'required|email|max:100|unique:users,email',
-            'password' => 'required|string|min:8',
+            'password' => ['required', Password::defaults()],
             'role_id' => 'required|exists:roles,id',
             'status' => 'required|in:active,inactive',
             'modules' => 'nullable|array',
@@ -106,7 +107,7 @@ class UserController extends Controller
             'email' => ['required', 'email', 'max:100', Rule::unique('users', 'email')->ignore($user->id)],
             'role_id' => 'required|exists:roles,id',
             'status' => 'required|in:active,inactive',
-            'password' => 'nullable|string|min:8',
+            'password' => ['nullable', Password::defaults()],
             'modules' => 'nullable|array',
             'modules.*' => 'exists:modules,id',
         ]);

@@ -72,9 +72,9 @@
                 <!-- Password -->
                 <div>
                     <label for="password" class="block text-xs font-semibold text-text-main uppercase tracking-wider mb-2">Password *</label>
-                    <input type="password" name="password" id="password" required
+                    <input type="password" name="password" id="password" required minlength="12"
                         class="w-full px-4 py-2.5 bg-background-light border border-divider-subtle/30 rounded-lg text-sm focus:outline-none focus:border-primary text-text-main"
-                        placeholder="Minimum 8 characters">
+                        placeholder="At least 12 characters">
                 </div>
 
                 <!-- System Role -->

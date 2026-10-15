@@ -142,7 +142,7 @@
                         $userRole = $user ? $user->role : '';
                         $isSuperadmin = in_array($userRole, ['superadmin', 'super_admin'], true);
                         $isAdmin = $userRole === 'admin';
-                        $isStaff = $userRole === 'section_staff';
+                        $isStaff = $userRole === 'staff';
                         
                         // Get current workspace from session or default to superadmin
                         $currentWorkspace = session('workspace', 'superadmin');
@@ -287,7 +287,6 @@
                             <span class="material-symbols-outlined text-white">list_alt</span>
                             <p class="text-sm font-medium">Program Records</p>
                         </a>
-    
                         <a href="{{ route('admin.stem.programs.ocr') }}"
                             class="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-white/10 cursor-pointer transition-colors {{ request()->routeIs('admin.stem.programs.ocr') ? 'active-nav' : '' }}">
                             <span class="material-symbols-outlined text-white">document_scanner</span>
@@ -391,19 +390,19 @@
 
                     @elseif($isAdmin)
                         @if(in_array('KPI', $userModules))
-                            <a href="{{ route('admin.kpi.index') }}"
-                                class="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-white/10 cursor-pointer transition-colors {{ request()->routeIs('admin.kpi.*') ? 'active-nav' : '' }}">
-                                <span class="material-symbols-outlined text-white">assessment</span>
-                                <p class="text-sm font-medium">KPI Dashboard</p>
-                            </a>
-                            <a href="{{ route('admin.kpi.edit') }}"
-                                class="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-white/10 cursor-pointer transition-colors {{ request()->routeIs('admin.kpi.*') ? 'active-nav' : '' }}">
-                                <span class="material-symbols-outlined text-white">assessment</span>
-                                <p class="text-sm font-medium">Edit KPI</p>
-                            </a>
+                        <a href="{{ route('admin.kpi.index') }}"
+                            class="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-white/10 cursor-pointer transition-colors {{ request()->routeIs('admin.kpi.index') ? 'active-nav' : '' }}">
+                            <span class="material-symbols-outlined text-white">dashboard</span>
+                            <p class="text-sm font-medium">Dashboard</p>
+                        </a>
+                        <a href="{{ route('admin.kpi.edit') }}"
+                            class="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-white/10 cursor-pointer transition-colors {{ request()->routeIs('admin.kpi.edit') ? 'active-nav' : '' }}">
+                            <span class="material-symbols-outlined text-white">edit_note</span>
+                            <p class="text-sm font-medium">Strategic Plans</p>
+                        </a>
                         @endif
                         @if(in_array('Awards', $userModules))
-                        <a href="{{ route('admin.awards.dashboard') }}"
+                      <a href="{{ route('admin.awards.dashboard') }}"
                             class="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-white/10 cursor-pointer transition-colors {{ request()->routeIs('admin.awards.dashboard') ? 'active-nav' : '' }}">
                             <span class="material-symbols-outlined text-white">dashboard</span>
                             <p class="text-sm font-medium">Dashboard</p>
@@ -445,28 +444,60 @@
                         </a>
                         @endif
                         @if(in_array('Products', $userModules))
-                            <a href="{{ route('admin.products.index') }}"
-                                class="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-white/10 cursor-pointer transition-colors {{ request()->routeIs('admin.products.*') ? 'active-nav' : '' }}">
-                                <span class="material-symbols-outlined text-white">inventory_2</span>
-                                <p class="text-sm font-medium">Products</p>
-                            </a>
+                        <a href="{{ route('admin.products.index') }}"
+                            class="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-white/10 cursor-pointer transition-colors {{ request()->routeIs('admin.products.index') ? 'active-nav' : '' }}">
+                            <span class="material-symbols-outlined text-white">dashboard</span>
+                            <p class="text-sm font-medium">Dashboard</p>
+                        </a>
+                        <a href="{{ route('admin.products.records') }}"
+                            class="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-white/10 cursor-pointer transition-colors {{ request()->routeIs('admin.products.records', 'admin.products.edit') ? 'active-nav' : '' }}">
+                            <span class="material-symbols-outlined text-white">list_alt</span>
+                            <p class="text-sm font-medium">Product Records</p>
+                        </a>
                         @endif
                         @if(in_array('Intellectual Property', $userModules))
-                            <a href="{{ route('admin.projects.index') }}"
-                                class="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-white/10 cursor-pointer transition-colors {{ request()->routeIs('admin.projects.*') ? 'active-nav' : '' }}">
-                                <span class="material-symbols-outlined text-white">science</span>
-                                <p class="text-sm font-medium">Projects</p>
-                            </a>
+                        <a href="{{ route('admin.ip.dashboard') }}"
+                            class="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-white/10 cursor-pointer transition-colors {{ request()->routeIs('admin.ip.dashboard') ? 'active-nav' : '' }}">
+                            <span class="material-symbols-outlined text-white">dashboard</span>
+                            <p class="text-sm font-medium">Dashboard</p>
+                        </a>
+                        <a href="{{ route('admin.ip.index') }}"
+                            class="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-white/10 cursor-pointer transition-colors {{ request()->routeIs('admin.ip.index', 'admin.ip.show', 'admin.ip.edit', 'admin.ip.create') ? 'active-nav' : '' }}">
+                            <span class="material-symbols-outlined text-white">list_alt</span>
+                            <p class="text-sm font-medium">IP Records</p>
+                        </a>
+                        <a href="{{ route('admin.ip.renewals') }}"
+                            class="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-white/10 cursor-pointer transition-colors {{ request()->routeIs('admin.ip.renewals') ? 'active-nav' : '' }}">
+                            <span class="material-symbols-outlined text-white">event_repeat</span>
+                            <p class="text-sm font-medium">Renewals</p>
+                        </a>
                         @endif
-                        @if(in_array('Community', $userModules) || in_array('STEM', $userModules))
-                            <a href="{{ route('admin.events') }}"
-                                class="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-white/10 cursor-pointer transition-colors {{ request()->routeIs('admin.events') ? 'active-nav' : '' }}">
-                                <span class="material-symbols-outlined text-white">calendar_month</span>
-                                <p class="text-sm font-medium">Events</p>
-                            </a>
+                        @if(in_array('Community/STEM/Industry', $userModules))
+                        <a href="{{ route('admin.stem.dashboard') }}"
+                            class="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-white/10 cursor-pointer transition-colors {{ request()->routeIs('admin.stem.dashboard') ? 'active-nav' : '' }}">
+                            <span class="material-symbols-outlined text-white">dashboard</span>
+                            <p class="text-sm font-medium">Dashboard</p>
+                        </a>
+                        <a href="{{ route('admin.stem.programs.index') }}"
+                            class="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-white/10 cursor-pointer transition-colors {{ request()->routeIs('admin.stem.programs.index', 'admin.stem.programs.edit') ? 'active-nav' : '' }}">
+                            <span class="material-symbols-outlined text-white">list_alt</span>
+                            <p class="text-sm font-medium">Program Records</p>
+                        </a>
+                        <a href="{{ route('admin.stem.programs.ocr') }}"
+                            class="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-white/10 cursor-pointer transition-colors {{ request()->routeIs('admin.stem.programs.ocr') ? 'active-nav' : '' }}">
+                            <span class="material-symbols-outlined text-white">document_scanner</span>
+                            <p class="text-sm font-medium">Bulk OCR</p>
+                        </a>
                         @endif
                     @elseif($isStaff)
-                        <!-- Staff users - show basic navigation -->
+                        @if(in_array('KPI', $userModules))
+                        <a href="{{ route('admin.kpi.index') }}"
+                            class="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-white/10 cursor-pointer transition-colors {{ request()->routeIs('admin.kpi.*') ? 'active-nav' : '' }}">
+                            <span class="material-symbols-outlined text-white">dashboard</span>
+                            <p class="text-sm font-medium">KPI Dashboard</p>
+                        </a>
+                        @endif
+                        @if(in_array('Awards', $userModules))
                         <a href="{{ route('admin.awards.dashboard') }}"
                             class="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-white/10 cursor-pointer transition-colors {{ request()->routeIs('admin.awards.dashboard') ? 'active-nav' : '' }}">
                             <span class="material-symbols-outlined text-white">dashboard</span>
@@ -482,6 +513,28 @@
                             <span class="material-symbols-outlined text-white">school</span>
                             <p class="text-sm font-medium">Faculty List</p>
                         </a>
+                        @endif
+                        @if(in_array('Products', $userModules))
+                        <a href="{{ route('admin.products.index') }}"
+                            class="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-white/10 cursor-pointer transition-colors {{ request()->routeIs('admin.products.*') ? 'active-nav' : '' }}">
+                            <span class="material-symbols-outlined text-white">inventory_2</span>
+                            <p class="text-sm font-medium">Products</p>
+                        </a>
+                        @endif
+                        @if(in_array('Intellectual Property', $userModules))
+                        <a href="{{ route('admin.ip.dashboard') }}"
+                            class="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-white/10 cursor-pointer transition-colors {{ request()->routeIs('admin.ip.*') ? 'active-nav' : '' }}">
+                            <span class="material-symbols-outlined text-white">lightbulb</span>
+                            <p class="text-sm font-medium">IP Dashboard</p>
+                        </a>
+                        @endif
+                        @if(in_array('Community/STEM/Industry', $userModules))
+                        <a href="{{ route('admin.stem.dashboard') }}"
+                            class="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-white/10 cursor-pointer transition-colors {{ request()->routeIs('admin.stem.*') ? 'active-nav' : '' }}">
+                            <span class="material-symbols-outlined text-white">school</span>
+                            <p class="text-sm font-medium">Community/STEM Dashboard</p>
+                        </a>
+                        @endif
                     @endif
                 </nav>
 

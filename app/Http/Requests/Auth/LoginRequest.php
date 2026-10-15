@@ -11,6 +11,10 @@ use Illuminate\Validation\ValidationException;
 
 class LoginRequest extends FormRequest
 {
+    private const MAX_ATTEMPTS = 5;
+
+    private const DECAY_SECONDS = 60;
+
     /**
      * Determine if the user is authorized to make this request.
      */
@@ -27,7 +31,7 @@ class LoginRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'staff_id' => ['required', 'string'],
+            'staff_id' => ['required', 'string', 'max:255'],
             'password' => ['required', 'string'],
         ];
     }
@@ -45,14 +49,16 @@ class LoginRequest extends FormRequest
             'ic' => $this->input('staff_id'),
             'password' => $this->input('password'),
         ], $this->boolean('remember'))) {
-            RateLimiter::hit($this->throttleKey());
+            foreach ($this->throttleKeys() as $key) {
+                RateLimiter::hit($key, self::DECAY_SECONDS);
+            }
 
             throw ValidationException::withMessages([
                 'staff_id' => trans('auth.failed'),
             ]);
         }
 
-        RateLimiter::clear($this->throttleKey());
+        RateLimiter::clear($this->throttleKeys()[0]);
     }
 
     /**
@@ -62,13 +68,21 @@ class LoginRequest extends FormRequest
      */
     public function ensureIsNotRateLimited(): void
     {
-        if (! RateLimiter::tooManyAttempts($this->throttleKey(), 5)) {
+        $limitedKeys = array_filter(
+            $this->throttleKeys(),
+            fn (string $key): bool => RateLimiter::tooManyAttempts($key, self::MAX_ATTEMPTS)
+        );
+
+        if ($limitedKeys === []) {
             return;
         }
 
         event(new Lockout($this));
 
-        $seconds = RateLimiter::availableIn($this->throttleKey());
+        $seconds = max(array_map(
+            fn (string $key): int => RateLimiter::availableIn($key),
+            $limitedKeys
+        ));
 
         throw ValidationException::withMessages([
             'staff_id' => trans('auth.throttle', [
@@ -81,8 +95,13 @@ class LoginRequest extends FormRequest
     /**
      * Get the rate limiting throttle key for the request.
      */
-    public function throttleKey(): string
+    public function throttleKeys(): array
     {
-        return Str::transliterate(Str::lower($this->string('staff_id')).'|'.$this->ip());
+        $identifier = Str::transliterate(Str::lower($this->string('staff_id')->toString()));
+
+        return [
+            'login:account:'.hash('sha256', $identifier),
+            'login:ip:'.hash('sha256', (string) $this->ip()),
+        ];
     }
 }

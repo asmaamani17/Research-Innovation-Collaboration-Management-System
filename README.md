@@ -5,7 +5,7 @@ RICM is a Laravel web application for managing research and innovation informati
 ## System modules
 
 - **Super Admin dashboard:** Cross-module summaries for awards, intellectual property (IP), community/STEM/industry programs, TRL products, KPI achievements, projects, staff, competitions, and faculties. Includes year/faculty filters and workspace navigation.
-- **User and access management:** Login, profile management, role-based access, user administration, and module permissions.
+- **User and access management:** Login, profile management, role-based access, user administration, and module permissions. Admin and staff accounts are routed to and restricted to their assigned modules; Super Admin retains access across modules, while user administration and workspace switching remain Super Admin-only. New and changed passwords require at least 12 characters and are checked against known breach data; failed logins are rate-limited by account identifier and IP address.
 - **Awards and competitions:** Manage awards and exhibition/competition events, link records to projects and staff, and view dashboards, reports, and award statistics.
 - **Intellectual Property (IP):** Manage IP records, researchers/staff and project associations, categories and status, renewal dates, dashboards, reports, and Excel/CSV imports and exports.
 - **Products / Technology Readiness Level (TRL):** Manage product records and TRL levels, filter records, and import/export spreadsheets.
