@@ -3,39 +3,28 @@
 @section('title', 'Create New User')
 
 @section('content')
-<!-- Page Header -->
-<header class="px-8 py-8 flex flex-wrap items-center justify-between gap-4">
+@include('admin.users.partials.form-styles')
+
+<div class="user-form">
+<header class="flex flex-wrap items-center justify-between gap-4">
     <div class="flex flex-col">
-        <div class="flex items-center gap-2 text-sm text-divider-subtle mb-1">
-            <a href="{{ route('admin.users.index') }}" class="hover:text-primary transition-colors">Users</a>
-            <span>/</span>
-            <span class="text-text-main font-medium">Create User</span>
-        </div>
-        <h2 class="text-text-main text-3xl font-black leading-tight tracking-tight">
-            Create New User
-        </h2>
-        <p class="text-divider-subtle font-medium text-sm mt-1">
+        <h1 class="page-title">Create New User</h1>
+        <p class="page-description">
             Add a new user and assign single or multiple management modules.
         </p>
     </div>
-    <a href="{{ route('admin.users.index') }}" class="flex cursor-pointer items-center justify-center gap-2 rounded-lg h-10 px-4 bg-background-light border border-divider-subtle/30 text-text-main text-sm font-semibold hover:bg-gray-100 transition-all">
+    <a href="{{ route('admin.users.index') }}" class="back-link">
         <span class="material-symbols-outlined text-sm">arrow_back</span>
         <span>Back to Users</span>
     </a>
 </header>
 
-<div class="px-8 pb-12">
-    <div class="max-w-4xl bg-white border border-divider-subtle/30 rounded-xl shadow-sm overflow-hidden">
-        <div class="p-6 border-b border-divider-subtle/30">
-            <h3 class="text-lg font-bold text-text-main">User Details & Module Assignment</h3>
-            <p class="text-xs text-divider-subtle mt-0.5">Fill in user credentials and select all management modules this admin can handle.</p>
-        </div>
-
-        <form action="{{ route('admin.users.store') }}" method="POST" class="p-6 space-y-6">
+<div class="form-card">
+        <form action="{{ route('admin.users.store') }}" method="POST">
             @csrf
 
             @if($errors->any())
-                <div class="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm">
+                <div class="error-list">
                     <ul class="list-disc list-inside space-y-1">
                         @foreach($errors->all() as $error)
                             <li>{{ $error }}</li>
@@ -44,44 +33,44 @@
                 </div>
             @endif
 
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div class="form-grid">
                 <!-- Full Name -->
-                <div>
+                <div class="form-field">
                     <label for="name" class="block text-xs font-semibold text-text-main uppercase tracking-wider mb-2">Full Name *</label>
                     <input type="text" name="name" id="name" value="{{ old('name') }}" required
-                        class="w-full px-4 py-2.5 bg-background-light border border-divider-subtle/30 rounded-lg text-sm focus:outline-none focus:border-primary text-text-main"
+                        class="user-control"
                         placeholder="e.g. Dr. Ahmad Ali">
                 </div>
 
                 <!-- IC Number -->
-                <div>
+                <div class="form-field">
                     <label for="ic" class="block text-xs font-semibold text-text-main uppercase tracking-wider mb-2">IC Number *</label>
                     <input type="text" name="ic" id="ic" value="{{ old('ic') }}" required
-                        class="w-full px-4 py-2.5 bg-background-light border border-divider-subtle/30 rounded-lg text-sm focus:outline-none focus:border-primary text-text-main"
+                        class="user-control"
                         placeholder="e.g. 850101045231">
                 </div>
 
                 <!-- Email -->
-                <div>
+                <div class="form-field">
                     <label for="email" class="block text-xs font-semibold text-text-main uppercase tracking-wider mb-2">Email Address *</label>
                     <input type="email" name="email" id="email" value="{{ old('email') }}" required
-                        class="w-full px-4 py-2.5 bg-background-light border border-divider-subtle/30 rounded-lg text-sm focus:outline-none focus:border-primary text-text-main"
+                        class="user-control"
                         placeholder="e.g. ahmad@utem.edu.my">
                 </div>
 
                 <!-- Password -->
-                <div>
+                <div class="form-field">
                     <label for="password" class="block text-xs font-semibold text-text-main uppercase tracking-wider mb-2">Password *</label>
                     <input type="password" name="password" id="password" required minlength="12"
-                        class="w-full px-4 py-2.5 bg-background-light border border-divider-subtle/30 rounded-lg text-sm focus:outline-none focus:border-primary text-text-main"
+                        class="user-control"
                         placeholder="At least 12 characters">
                 </div>
 
                 <!-- System Role -->
-                <div>
+                <div class="form-field">
                     <label for="role_id" class="block text-xs font-semibold text-text-main uppercase tracking-wider mb-2">System Role *</label>
                     <select name="role_id" id="role_id" required
-                        class="w-full px-4 py-2.5 bg-background-light border border-divider-subtle/30 rounded-lg text-sm focus:outline-none focus:border-primary text-text-main">
+                        class="user-control">
                         <option value="">Select System Role</option>
                         @foreach($roles as $role)
                             <option value="{{ $role->id }}" {{ old('role_id') == $role->id ? 'selected' : '' }}>
@@ -92,10 +81,10 @@
                 </div>
 
                 <!-- Account Status -->
-                <div>
+                <div class="form-field">
                     <label for="status" class="block text-xs font-semibold text-text-main uppercase tracking-wider mb-2">Status *</label>
                     <select name="status" id="status" required
-                        class="w-full px-4 py-2.5 bg-background-light border border-divider-subtle/30 rounded-lg text-sm focus:outline-none focus:border-primary text-text-main">
+                        class="user-control">
                         <option value="active" {{ old('status', 'active') === 'active' ? 'selected' : '' }}>Active</option>
                         <option value="inactive" {{ old('status') === 'inactive' ? 'selected' : '' }}>Inactive</option>
                     </select>
@@ -103,7 +92,7 @@
             </div>
 
             <!-- Management Module Assignment (Multi-Select) -->
-            <div class="pt-4 border-t border-divider-subtle/20">
+            <div class="module-access">
                 <div class="flex items-center justify-between mb-3">
                     <div>
                         <label class="block text-sm font-bold text-text-main">Management Module Access</label>
@@ -112,11 +101,11 @@
                     <button type="button" id="selectAllModules" class="text-xs font-semibold text-primary hover:underline">Select All</button>
                 </div>
 
-                <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 bg-background-light p-4 rounded-xl border border-divider-subtle/20">
+                <div class="module-grid">
                     @foreach($modules as $module)
-                        <label class="flex items-center gap-3 p-3 bg-white border border-divider-subtle/30 rounded-lg hover:border-primary/50 cursor-pointer transition-all">
+                        <label class="module-option">
                             <input type="checkbox" name="modules[]" value="{{ $module->id }}"
-                                class="module-checkbox w-4 h-4 text-primary rounded border-divider-subtle focus:ring-primary"
+                                class="module-checkbox"
                                 {{ is_array(old('modules')) && in_array($module->id, old('modules')) ? 'checked' : '' }}>
                             <div class="flex flex-col">
                                 <span class="text-sm font-semibold text-text-main">{{ $module->module_name }}</span>
@@ -127,14 +116,14 @@
                 </div>
             </div>
 
-            <div class="flex items-center justify-end gap-3 pt-6 border-t border-divider-subtle/20">
-                <a href="{{ route('admin.users.index') }}" class="px-5 py-2.5 rounded-lg border border-divider-subtle/30 text-sm font-semibold text-text-main hover:bg-gray-50 transition-all">Cancel</a>
-                <button type="submit" class="px-6 py-2.5 rounded-lg bg-primary text-white text-sm font-bold shadow-md hover:bg-primary/90 transition-all">
+            <div class="form-actions">
+                <a href="{{ route('admin.users.index') }}" class="button secondary">Cancel</a>
+                <button type="submit" class="button">
                     Create User
                 </button>
             </div>
         </form>
-    </div>
+</div>
 </div>
 
 <script>

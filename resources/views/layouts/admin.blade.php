@@ -389,7 +389,11 @@
                         </a>
 
                     @elseif($isAdmin)
+                        <!-- <div class="px-4 pb-2">
+                            <p class="text-white/50 text-xs font-semibold uppercase tracking-wider">Assigned Modules</p>
+                        </div> -->
                         @if(in_array('KPI', $userModules))
+                        <p class="px-4 pt-3 pb-1 text-white/50 text-[11px] font-bold uppercase tracking-wider">KPI Management</p>
                         <a href="{{ route('admin.kpi.index') }}"
                             class="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-white/10 cursor-pointer transition-colors {{ request()->routeIs('admin.kpi.index') ? 'active-nav' : '' }}">
                             <span class="material-symbols-outlined text-white">dashboard</span>
@@ -402,12 +406,13 @@
                         </a>
                         @endif
                         @if(in_array('Awards', $userModules))
-                      <a href="{{ route('admin.awards.dashboard') }}"
+                        <p class="px-4 pt-3 pb-1 text-white/50 text-[11px] font-bold uppercase tracking-wider">Awards Management</p>
+                        <a href="{{ route('admin.awards.dashboard') }}"
                             class="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-white/10 cursor-pointer transition-colors {{ request()->routeIs('admin.awards.dashboard') ? 'active-nav' : '' }}">
                             <span class="material-symbols-outlined text-white">dashboard</span>
-                            <p class="text-sm font-medium">Dashboard</p>
+                            <p class="text-sm font-medium">Awards Dashboard</p>
                         </a>
-                            <a href="{{ route('admin.staff.index') }}"
+                        <a href="{{ route('admin.staff.index') }}"
                             class="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-white/10 cursor-pointer transition-colors {{ request()->routeIs('admin.staff.index') ? 'active-nav' : '' }}">
                             <span class="material-symbols-outlined text-white">group</span>
                             <p class="text-sm font-medium">Staff Management</p>
@@ -444,10 +449,11 @@
                         </a>
                         @endif
                         @if(in_array('Products', $userModules))
+                        <p class="px-4 pt-3 pb-1 text-white/50 text-[11px] font-bold uppercase tracking-wider">Products / TRL</p>
                         <a href="{{ route('admin.products.index') }}"
                             class="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-white/10 cursor-pointer transition-colors {{ request()->routeIs('admin.products.index') ? 'active-nav' : '' }}">
                             <span class="material-symbols-outlined text-white">dashboard</span>
-                            <p class="text-sm font-medium">Dashboard</p>
+                            <p class="text-sm font-medium">Products Dashboard</p>
                         </a>
                         <a href="{{ route('admin.products.records') }}"
                             class="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-white/10 cursor-pointer transition-colors {{ request()->routeIs('admin.products.records', 'admin.products.edit') ? 'active-nav' : '' }}">
@@ -456,10 +462,11 @@
                         </a>
                         @endif
                         @if(in_array('Intellectual Property', $userModules))
+                        <p class="px-4 pt-3 pb-1 text-white/50 text-[11px] font-bold uppercase tracking-wider">Intellectual Property</p>
                         <a href="{{ route('admin.ip.dashboard') }}"
                             class="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-white/10 cursor-pointer transition-colors {{ request()->routeIs('admin.ip.dashboard') ? 'active-nav' : '' }}">
                             <span class="material-symbols-outlined text-white">dashboard</span>
-                            <p class="text-sm font-medium">Dashboard</p>
+                            <p class="text-sm font-medium">IP Dashboard</p>
                         </a>
                         <a href="{{ route('admin.ip.index') }}"
                             class="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-white/10 cursor-pointer transition-colors {{ request()->routeIs('admin.ip.index', 'admin.ip.show', 'admin.ip.edit', 'admin.ip.create') ? 'active-nav' : '' }}">
@@ -473,10 +480,11 @@
                         </a>
                         @endif
                         @if(in_array('Community/STEM/Industry', $userModules))
+                        <p class="px-4 pt-3 pb-1 text-white/50 text-[11px] font-bold uppercase tracking-wider">Community, STEM &amp; Industry</p>
                         <a href="{{ route('admin.stem.dashboard') }}"
                             class="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-white/10 cursor-pointer transition-colors {{ request()->routeIs('admin.stem.dashboard') ? 'active-nav' : '' }}">
                             <span class="material-symbols-outlined text-white">dashboard</span>
-                            <p class="text-sm font-medium">Dashboard</p>
+                            <p class="text-sm font-medium">Community/STEM Dashboard</p>
                         </a>
                         <a href="{{ route('admin.stem.programs.index') }}"
                             class="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-white/10 cursor-pointer transition-colors {{ request()->routeIs('admin.stem.programs.index', 'admin.stem.programs.edit') ? 'active-nav' : '' }}">
@@ -489,8 +497,15 @@
                             <p class="text-sm font-medium">Bulk OCR</p>
                         </a>
                         @endif
+                        @if(empty($userModules))
+                        <p class="px-4 py-3 text-sm text-white/60">No modules have been assigned to your account.</p>
+                        @endif
                     @elseif($isStaff)
+                        <div class="px-4 pb-2">
+                            <p class="text-white/50 text-xs font-semibold uppercase tracking-wider">Assigned Modules</p>
+                        </div>
                         @if(in_array('KPI', $userModules))
+                        <p class="px-4 pt-3 pb-1 text-white/50 text-[11px] font-bold uppercase tracking-wider">KPI Management</p>
                         <a href="{{ route('admin.kpi.index') }}"
                             class="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-white/10 cursor-pointer transition-colors {{ request()->routeIs('admin.kpi.*') ? 'active-nav' : '' }}">
                             <span class="material-symbols-outlined text-white">dashboard</span>
@@ -498,10 +513,11 @@
                         </a>
                         @endif
                         @if(in_array('Awards', $userModules))
+                        <p class="px-4 pt-3 pb-1 text-white/50 text-[11px] font-bold uppercase tracking-wider">Awards Management</p>
                         <a href="{{ route('admin.awards.dashboard') }}"
                             class="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-white/10 cursor-pointer transition-colors {{ request()->routeIs('admin.awards.dashboard') ? 'active-nav' : '' }}">
                             <span class="material-symbols-outlined text-white">dashboard</span>
-                            <p class="text-sm font-medium">Dashboard</p>
+                            <p class="text-sm font-medium">Awards Dashboard</p>
                         </a>
                         <a href="{{ route('admin.staff.index') }}"
                             class="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-white/10 cursor-pointer transition-colors {{ request()->routeIs('admin.staff.index') ? 'active-nav' : '' }}">
@@ -515,6 +531,7 @@
                         </a>
                         @endif
                         @if(in_array('Products', $userModules))
+                        <p class="px-4 pt-3 pb-1 text-white/50 text-[11px] font-bold uppercase tracking-wider">Products / TRL</p>
                         <a href="{{ route('admin.products.index') }}"
                             class="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-white/10 cursor-pointer transition-colors {{ request()->routeIs('admin.products.*') ? 'active-nav' : '' }}">
                             <span class="material-symbols-outlined text-white">inventory_2</span>
@@ -522,6 +539,7 @@
                         </a>
                         @endif
                         @if(in_array('Intellectual Property', $userModules))
+                        <p class="px-4 pt-3 pb-1 text-white/50 text-[11px] font-bold uppercase tracking-wider">Intellectual Property</p>
                         <a href="{{ route('admin.ip.dashboard') }}"
                             class="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-white/10 cursor-pointer transition-colors {{ request()->routeIs('admin.ip.*') ? 'active-nav' : '' }}">
                             <span class="material-symbols-outlined text-white">lightbulb</span>
@@ -529,11 +547,15 @@
                         </a>
                         @endif
                         @if(in_array('Community/STEM/Industry', $userModules))
+                        <p class="px-4 pt-3 pb-1 text-white/50 text-[11px] font-bold uppercase tracking-wider">Community, STEM &amp; Industry</p>
                         <a href="{{ route('admin.stem.dashboard') }}"
                             class="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-white/10 cursor-pointer transition-colors {{ request()->routeIs('admin.stem.*') ? 'active-nav' : '' }}">
                             <span class="material-symbols-outlined text-white">school</span>
                             <p class="text-sm font-medium">Community/STEM Dashboard</p>
                         </a>
+                        @endif
+                        @if(empty($userModules))
+                        <p class="px-4 py-3 text-sm text-white/60">No modules have been assigned to your account.</p>
                         @endif
                     @endif
                 </nav>
